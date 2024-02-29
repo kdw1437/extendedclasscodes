@@ -13,13 +13,14 @@ public class PostYieldCurves {
     Logger log = LoggerMg.getInstance().getLogger();
 
     public void execute(DaoService dao) {
-
+        String dataSetId = dao.getRequest().getParameter("dataSetId");
+        String baseDt = dao.getRequest().getParameter("baseDt");
         // Assume jsonStr is the JSON string received in the DaoService object
         String jsonStr = dao.getStringValue("a");
 
         // Convert the JSON string to a ListParam object for the top-level array
         JSONArray jsonArray = new JSONArray(jsonStr);
-        ListParam listParam = new ListParam(new String[]{"dataId", "currency", "tenor", "rate"});
+        ListParam listParam = new ListParam(new String[]{"BASE_DT", "DATA_SET_ID", "DATA_ID", "EXPR_VAL", "ERRT"});
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -34,10 +35,11 @@ public class PostYieldCurves {
 
                 // Create a new row in ListParam for each yield entry
                 int rowIdx = listParam.createRow();
-                listParam.setValue(rowIdx, "dataId", dataId);
-                listParam.setValue(rowIdx, "currency", currency);
-                listParam.setValue(rowIdx, "tenor", tenor);
-                listParam.setValue(rowIdx, "rate", rate);
+                listParam.setValue(rowIdx, "BASE_DT", baseDt);
+                listParam.setValue(rowIdx, "DATA_SET_ID", dataSetId);
+                listParam.setValue(rowIdx, "DATA_ID", dataId);
+                listParam.setValue(rowIdx, "EXPR_VAL", tenor);
+                listParam.setValue(rowIdx, "ERRT", rate);
             }
         }
         log.info(listParam.toString());
@@ -46,7 +48,7 @@ public class PostYieldCurves {
        
         // Attempt to execute the SQL statement
         try {
-            dao.sqlexe("s_insertYieldCurves", false);
+            dao.sqlexe("s_insertYieldCurves2", false);
         } catch (SQLServiceException e) {
             e.printStackTrace();
         }
