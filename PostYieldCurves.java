@@ -15,10 +15,10 @@ public class PostYieldCurves {
     public void execute(DaoService dao) {
         String dataSetId = dao.getRequest().getParameter("dataSetId");
         String baseDt = dao.getRequest().getParameter("baseDt");
-        // Assume jsonStr is the JSON string received in the DaoService object
+        
         String jsonStr = dao.getStringValue("a");
 
-        // Convert the JSON string to a ListParam object for the top-level array
+        //JSON string을 ListParam객체로 바꾼다.
         JSONArray jsonArray = new JSONArray(jsonStr);
         ListParam listParam = new ListParam(new String[]{"BASE_DT", "DATA_SET_ID", "DATA_ID", "EXPR_VAL", "ERRT"});
 
@@ -33,7 +33,7 @@ public class PostYieldCurves {
                 double tenor = yieldObject.getDouble("tenor");
                 double rate = yieldObject.getDouble("rate");
 
-                // Create a new row in ListParam for each yield entry
+                // 각 yield entry에 대해서 ListParam객체에 새로운 row(객체)를 추가한다.
                 int rowIdx = listParam.createRow();
                 listParam.setValue(rowIdx, "BASE_DT", baseDt);
                 listParam.setValue(rowIdx, "DATA_SET_ID", dataSetId);
