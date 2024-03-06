@@ -42,11 +42,11 @@ public class PostPrices {
 
             dao.setValue("insertPricesTp", listParam);
 
-            // Attempt to execute the SQL statement
+            // SQL문을 실행한다.
             dao.sqlexe("s_insertPrices", false);
         } catch (ParamException | SQLServiceException e) {
             log.error("Error executing PostPrices", e);
-            // Handle exception
+            // 예외를 다룬다.
         }
 }
 }

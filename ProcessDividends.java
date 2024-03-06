@@ -14,11 +14,11 @@ public class ProcessDividends {
 
     public void execute(DaoService dao) {
         try {
-            // Execute the SQL query
-            dao.sqlexe("s_selectDividends_v1", false); // Use the SQL query ID for prices
-            ListParam result = dao.getNowListParam(); // Get the result of the query
+            // SQL query를 실핸한다.
+            dao.sqlexe("s_selectDividends_v1", false); // 가격에 대한 sqlqueryId를 사용
+            ListParam result = dao.getNowListParam(); // query의 결과를 얻는다.
 
-            // Check for no results
+            // 결과 없음을 확인한다.
             if (result.rowSize() == 0) {
                 JSONObject errorJson = new JSONObject();
                 errorJson.put("error", "URL에 필요한 parameter를 제대로 입력하지 않았습니다.");
@@ -27,11 +27,11 @@ public class ProcessDividends {
                 return;
             }
 
-            // Initialize the JSON structure
+            // JSON구조를 초기화한다.
             JSONObject finalJson = new JSONObject();
             JSONArray pricesArray = new JSONArray();
 
-            // Process each row in the result
+            // 결과에서 각 row를 처리한다.
             for (int i = 0; i < result.rowSize(); i++) {
                 JSONObject priceObject = new JSONObject();
                 priceObject.put("baseDt", result.getValue(i, "baseDt", ""));
@@ -39,7 +39,7 @@ public class ProcessDividends {
                 priceObject.put("dataId", result.getValue(i, "dataId", ""));
                 //priceObject.put("yield", result.getValue(i, "yield", ""));
                 String yieldStr = result.getValue(i, "yield", "");
-                double yieldNum = Double.parseDouble(yieldStr);  // Converts string to double
+                double yieldNum = Double.parseDouble(yieldStr);  // string을 double로 바꾼다.
                 priceObject.put("yield", yieldNum);  // Automatically uses numeric JSON representation
 
 

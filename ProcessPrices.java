@@ -14,11 +14,11 @@ public class ProcessPrices {
 
     public void execute(DaoService dao) {
         try {
-            // Execute the SQL query
-            dao.sqlexe("s_selectPrices_v1", false); // Use the SQL query ID for prices
-            ListParam result = dao.getNowListParam(); // Get the result of the query
+            // SQL query를 실핸한다.
+            dao.sqlexe("s_selectPrices_v1", false); // 가격에 대해 sqlqueryId를 실행한다.
+            ListParam result = dao.getNowListParam(); // query결과를 얻는다.
 
-            // Check for no results
+            // 결과없음을 check한다.
             if (result.rowSize() == 0) {
                 JSONObject errorJson = new JSONObject();
                 errorJson.put("error", "URL에 필요한 parameter를 제대로 입력하지 않았습니다.");
@@ -27,11 +27,11 @@ public class ProcessPrices {
                 return;
             }
 
-            // Initialize the JSON structure
+            // JSON 구조를 초기화한다.
             JSONObject finalJson = new JSONObject();
             JSONArray pricesArray = new JSONArray();
 
-            // Process each row in the result
+            // 결과에서 각 row를 처리한다.
             for (int i = 0; i < result.rowSize(); i++) {
                 JSONObject priceObject = new JSONObject();
                 priceObject.put("baseDt", result.getValue(i, "baseDt", ""));
@@ -42,7 +42,7 @@ public class ProcessPrices {
                 if (!currencyStr.isEmpty()) {
                     priceObject.put("currency", currencyStr);
                 } else {
-                    priceObject.put("currency", JSONObject.NULL);  // Set to null if empty
+                    priceObject.put("currency", JSONObject.NULL);  // 비었으면 null로 처리한다.
                 }
                 //priceObject.put("baseCurrency", result.getValue(i, "baseCurrency", ""));
                 String baseCurrencyStr = result.getValue(i, "baseCurrency", "");
@@ -56,8 +56,8 @@ public class ProcessPrices {
                 String priceStr = result.getValue(i, "price", "");
                 
                 if (!priceStr.isEmpty()) {
-                	double priceNum = Double.parseDouble(priceStr);  // Converts string to double
-                	priceObject.put("price", priceNum);  // Automatically uses numeric JSON representation
+                	double priceNum = Double.parseDouble(priceStr);  // string을 double로 바꾼다.
+                	priceObject.put("price", priceNum);  // numeric JSON representation을 자동으로 사용한다.
                 } else {
                 	priceObject.put("price", JSONObject.NULL);
                 }

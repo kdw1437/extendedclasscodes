@@ -14,11 +14,11 @@ public class ProcessCorrs {
 
     public void execute(DaoService dao) {
         try {
-            // Execute the SQL query
+            // SQL query문 실행
             dao.sqlexe("s_selCorrelation", false); // Use the SQL query ID for prices
             ListParam result = dao.getNowListParam(); // Get the result of the query
 
-            // Check for no results
+            // result가 없는 경우를 확인한다.
             if (result.rowSize() == 0) {
                 JSONObject errorJson = new JSONObject();
                 errorJson.put("error", "URL에 필요한 parameter를 제대로 입력하지 않았습니다.");
@@ -27,11 +27,11 @@ public class ProcessCorrs {
                 return;
             }
 
-            // Initialize the JSON structure
+            // JSON구조를 초기화 한다.
             JSONObject finalJson = new JSONObject();
             JSONArray pricesArray = new JSONArray();
 
-            // Process each row in the result
+            // 결과에서 각 row를 처리한다.
             for (int i = 0; i < result.rowSize(); i++) {
                 JSONObject priceObject = new JSONObject();
                 priceObject.put("baseDt", result.getValue(i, "baseDt", ""));
@@ -42,7 +42,7 @@ public class ProcessCorrs {
                 //priceObject.put("corr", result.getValue(i, "corr", ""));
                 
                 String corrStr = result.getValue(i, "corr", "");
-                double corrNum = Double.parseDouble(corrStr);  // Converts string to double
+                double corrNum = Double.parseDouble(corrStr);  // string을 double로 바꾼다.
                 priceObject.put("corr", corrNum);  // Automatically uses numeric JSON representation
                 pricesArray.put(priceObject);
             }

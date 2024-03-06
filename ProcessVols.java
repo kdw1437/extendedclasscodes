@@ -36,18 +36,18 @@ public class ProcessVols {
                 String dataId = result.getValue(i, "dataId", "");
                 //String volFactor = result.getValue(i, "volCurves.volFactor", "");
                 String volFactorStr = result.getValue(i, "volCurves.volFactor", "");
-                double volFactorNum = Double.parseDouble(volFactorStr);  // Converts string to double
+                double volFactorNum = Double.parseDouble(volFactorStr);  // string을 double로 바꾼다.
                  
                 
                 JSONObject termVolObject = new JSONObject();
                 //termVolObject.put("tenor", result.getValue(i, "volCurves.termVols.tenor", ""));
                 String tenorStr = result.getValue(i, "volCurves.termVols.tenor", "");
-                double tenorNum = Double.parseDouble(tenorStr);  // Converts string to double
+                double tenorNum = Double.parseDouble(tenorStr);  // string을 double로 바꾼다.
                 termVolObject.put("tenor", tenorNum);
                      
                 //termVolObject.put("vol", result.getValue(i, "volCurves.termVols.vol", ""));
                 String volStr = result.getValue(i, "volCurves.termVols.vol", "");
-                double volNum = Double.parseDouble(volStr);  // Converts string to double
+                double volNum = Double.parseDouble(volStr);  // string을 double로 바꾼다.
                 termVolObject.put("vol", volNum);
                 
                 JSONObject volCurveObject = new JSONObject();
@@ -72,7 +72,7 @@ public class ProcessVols {
                     JSONObject existingDataIdObject = dataIdMap.get(dataId);
                     JSONArray existingVolCurvesArray = existingDataIdObject.getJSONArray("volCurves");
 
-                    // Check if volCurve with the same volFactor exists
+                    // 같은 volFactor를 가지는 voluCurve가 있는지 확인
                     boolean volCurveExists = false;
                     for (int j = 0; j < existingVolCurvesArray.length(); j++) {
                         JSONObject existingVolCurve = existingVolCurvesArray.getJSONObject(j);
