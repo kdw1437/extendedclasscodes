@@ -90,7 +90,7 @@ public class ProcessYieldCurves2 {
                     existingDataIdObject.getJSONArray("yields").put(yieldObject);
                 } else {
                     // 새로운 dataId, 새로운 entry 만들기
-                    JSONObject newDataIdObject = new JSONObject();
+                    /*JSONObject newDataIdObject = new JSONObject();
                     newDataIdObject.put("baseDt", baseDt);
                     newDataIdObject.put("dataSetId", dataSetId);
                     newDataIdObject.put("dataId", dataId);
@@ -100,7 +100,24 @@ public class ProcessYieldCurves2 {
                     newYieldsArray.put(yieldObject);
                     newDataIdObject.put("yields", newYieldsArray);
 
-                    yieldsArray.put(newDataIdObject);
+                    yieldsArray.put(newDataIdObject);*/
+                    // New dataId, create a new entry using LinkedHashMap to maintain order
+                    Map<String, Object> newDataIdMap = new LinkedHashMap<>();
+                    newDataIdMap.put("baseDt", baseDt);
+                    newDataIdMap.put("dataSetId", dataSetId);
+                    newDataIdMap.put("dataId", dataId);
+                    newDataIdMap.put("currency", currency);  // currency is added here
+
+                    List<Map<String, Object>> newYieldsList = new ArrayList<>();
+                    Map<String, Object> yieldMap = new LinkedHashMap<>();
+                    yieldMap.put("tenor", tenorNum);
+                    yieldMap.put("rate", rateNum);
+                    newYieldsList.add(yieldMap);
+
+                    newDataIdMap.put("yields", newYieldsList);  // yields is added after currency
+
+                    // Convert LinkedHashMap to JSONObject when adding to JSONArray
+                    yieldsArray.put(new JSONObject(newDataIdMap));
                 }
             }
 

@@ -43,7 +43,7 @@ public class ProcessCorrs {
                 
                 String corrStr = result.getValue(i, "corr", "");
                 double corrNum = Double.parseDouble(corrStr);  // string을 double로 바꾼다.
-                priceObject.put("corr", corrNum);  // Automatically uses numeric JSON representation
+                priceObject.put("corr", corrNum);  
                 pricesArray.put(priceObject);
             }
 
