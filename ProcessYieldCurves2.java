@@ -1,8 +1,8 @@
 package com.jurosys.extension.com;
 
 import com.uro.DaoService;
-import com.jurosys.extension.com.NoBaseDtException;
-import com.jurosys.extension.com.NoDataIdsException;
+//import com.jurosys.extension.com.NoBaseDtException;
+//import com.jurosys.extension.com.NoDataIdsException;
 import com.uro.log.LoggerMg;
 import com.uro.service.sql.SQLServiceException;
 import com.uro.transfer.ListParam;

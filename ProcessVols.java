@@ -96,7 +96,7 @@ public class ProcessVols {
 
             finalJson.put("volatilities", volCurvesArray);
             dao.setValue("response", finalJson.toMap());
-            log.info(finalJson.toString());
+            log.debug(finalJson.toString());
 
         } catch (SQLServiceException e) {
             log.error("Error processing volatility curves", e);

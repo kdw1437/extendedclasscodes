@@ -13,6 +13,7 @@ import com.uro.transfer.ParamException;
 
 public class PostVols {
     Logger log = LoggerMg.getInstance().getLogger();
+	//Logger log = CustomLogger.enableDebugForLogger("PostVols1");
 
     public void execute(DaoService dao) {
         String dataSetId = dao.getRequest().getParameter("dataSetId");
@@ -52,8 +53,9 @@ public class PostVols {
                 }
             }
 
-            log.info(listParam.toString());
-
+            //log.info(listParam.toString());
+            log.debug("debug message");
+            //log.info("debug message");
             
             dao.setValue("insertTermVolsTp", listParam);
 
