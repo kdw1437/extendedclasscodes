@@ -86,7 +86,7 @@ public class ProcessDiscreteDividends {
                 JSONObject existingDataIdObject = findInArray(yieldsArray, dataId);
                 if (existingDataIdObject != null) {
                     // Existing dataId, yields array에 추가
-                    existingDataIdObject.getJSONArray("discreteDividends").put(yieldObject);
+                    existingDataIdObject.getJSONArray("dividends").put(yieldObject);
                 } else {
                     // 새로운 dataId, 새로운 entry 만들기
                     /*JSONObject newDataIdObject = new JSONObject();
@@ -113,14 +113,14 @@ public class ProcessDiscreteDividends {
                     yieldMap.put("value", valueNum);
                     newYieldsList.add(yieldMap);
 
-                    newDataIdMap.put("discreteDividends", newYieldsList);  // yields is added after currency
+                    newDataIdMap.put("dividends", newYieldsList);  // yields is added after currency
 
                     // Convert LinkedHashMap to JSONObject when adding to JSONArray
                     yieldsArray.put(new JSONObject(newDataIdMap));
                 }
             }
 
-            finalJson.put("discreteDividendCurves", yieldsArray);
+            finalJson.put("dividendStreams", yieldsArray);
             Map<String, Object> hashMap = finalJson.toMap();
             String jsonResponse = finalJson.toString().replace("\\", "");
             dao.setValue("response", hashMap);
