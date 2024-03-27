@@ -46,7 +46,7 @@ public class ProcessDividends {
                 pricesArray.put(priceObject);
             }
 
-            finalJson.put("dividends", pricesArray);
+            finalJson.put("dividendYields", pricesArray);
             Map<String, Object> hashMap = finalJson.toMap();
             dao.setValue("response", hashMap);
             log.info("HashMap contents: " + hashMap.toString());
