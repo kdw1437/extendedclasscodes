@@ -26,22 +26,41 @@ public class PostQuoteData {
         String jsonStr = dao.getStringValue("a");
         
         try {
-        	JSONArray jsonArray = new JSONArray(jsonStr);
-        	for (int i = 0; i <jsonArray.length(); i++) {
-        		JSONObject jsonObj = jsonArray.getJSONObject(i);
-        		String effectiveDateStr = jsonObj.getString("effectiveDate");
-        		int earlyRedempCycleMonths = jsonObj.getInt("earlyRedempCycle");
-        		
-        		LocalDate effectiveDate = LocalDate.parse(effectiveDateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
-        	
-        		List<String> dates = calculateFutureDates(effectiveDate, earlyRedempCycleMonths);
-        		
-        		String datesString = String.join(", ", dates);
-        		log.info("Calculated future dates: {}", datesString);
-        		
-        		log.info("Calculated future dates: {}", datesString);
+            JSONArray jsonArray = new JSONArray(jsonStr);
+            String[] columns = {"1stredemday", "2ndredemday", "3rdredemday", "4thredemday", "5thredemday", "6thredemday"};
+            ListParam listParam = new ListParam(columns);
 
-        	}
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                String effectiveDateStr = jsonObj.getString("effectiveDate");
+                int earlyRedempCycleMonths = jsonObj.getInt("earlyRedempCycle");
+                int settleDateOffset = jsonObj.getInt("settleDateOffset");
+                
+                LocalDate effectiveDate = LocalDate.parse(effectiveDateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
+                List<String> dates = calculateFutureDates(effectiveDate, earlyRedempCycleMonths);
+
+                // 새로운 열을 생성한다.
+                int rowIndex = listParam.createRow();
+
+                // 예상대로 dates list가 정확히 6개의 element를 가지는지 확인한다.
+                if (dates.size() != columns.length) {
+                    throw new IllegalArgumentException("The dates list must contain exactly 6 elements.");
+                }
+
+                // 리스트로 부터 각각의 date를 각 column에 할당한다.
+                for (int j = 0; j < columns.length; j++) {
+                    listParam.setValue(rowIndex, columns[j], dates.get(j));
+                }
+
+                String datesString = String.join(", ", dates);
+                log.debug("Calculated future dates for JSON object {}: {}", i, datesString);
+            }
+
+            // 여러 row를 가진 listParam 객체를 사용한다.
+            // listParam객체를 daoService의 setValue method를 통해서 데이터베이스의 테이블에 넣을 수 있다.
+            log.debug("Final ListParam with multiple rows: {}", listParam.toString());
+            
+            log.debug("Final ListParam with multiple rows: {}", listParam.toString());
         } catch (Exception e) {
         	log.error("Error executing PostQuoteData", e);
         }
@@ -72,4 +91,7 @@ public class PostQuoteData {
     private boolean isHoliday(LocalDate date) {
     	return false;
     }
+    
+
+
 }
