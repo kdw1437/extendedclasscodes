@@ -16,6 +16,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 public class PostQuoteData {
     Logger log = LoggerMg.getInstance().getLogger();
 
@@ -98,7 +107,47 @@ public class PostQuoteData {
     }
     
     private boolean isHoliday(LocalDate date) {
-    	return false;
+        try {
+            String apiKey = "uC4peG%2F98qVjSVKNVtW6WJC0lMM9KtZBxEid%2BhieYXDn7B3zxC0DkfNW9e2qVOPSuD9%2BI8EyF7D4gzXzx6NV9g%3D%3D"; // Encoded API Key
+            String requestUrl = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo"
+                    + "?solYear=" + date.getYear()
+                    + "&solMonth=" + String.format("%02d", date.getMonthValue())
+                    + "&ServiceKey=" + apiKey;
+            
+            log.debug("Making API call to check holidays for the date: {}", date);
+            URL url = new URL(requestUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 200) {
+                throw new RuntimeException("HttpResponseCode: " + responseCode);
+            } else {
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                Document doc = dBuilder.parse(conn.getInputStream());
+                doc.getDocumentElement().normalize();
+                
+                NodeList nList = doc.getElementsByTagName("item");
+                for (int temp = 0; temp < nList.getLength(); temp++) {
+                    Node nNode = nList.item(temp);
+                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                        Element eElement = (Element) nNode;
+                        String locdate = eElement.getElementsByTagName("locdate").item(0).getTextContent();
+                        String isHoliday = eElement.getElementsByTagName("isHoliday").item(0).getTextContent();
+                        if (locdate.equals(date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))) && "Y".equals(isHoliday)) {
+                        	log.debug("{} is a holiday", date);
+                            return true; // 휴일입니다.
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+        	log.error("Error checking if {} is a holiday", date, e);
+        }
+        log.debug("{} is not a holiday", date);
+        return false; // Not a holiday or error occurred
     }
     
 
