@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -38,7 +39,8 @@ public class PostQuoteData {
             JSONArray jsonArray = new JSONArray(jsonStr);
             String[] columns = {
                     "1stredemday", "2ndredemday", "3rdredemday", "4thredemday", "5thredemday", "6thredemday",
-                    "1stsettlement", "2ndsettlement", "3rdsettlement", "4thsettlement", "5thsettlement", "6thsettlement"
+                    "1stsettlement", "2ndsettlement", "3rdsettlement", "4thsettlement", "5thsettlement", "6thsettlement",
+                    "1stexercisePrice", "2ndexercisePrice", "3rdexercisePrice", "4thexercisePrice", "5thexercisePrice", "6thexercisePrice"
                 };
                 ListParam listParam = new ListParam(columns);
 
@@ -47,10 +49,12 @@ public class PostQuoteData {
                     String effectiveDateStr = jsonObj.getString("effectiveDate");
                     int earlyRedempCycleMonths = jsonObj.getInt("earlyRedempCycle");
                     int settleDateOffset = jsonObj.getInt("settleDateOffset");
-
+                    String exercisePricesStr = jsonObj.getString("exercisePrices");
+                    
                     LocalDate effectiveDate = LocalDate.parse(effectiveDateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
                     List<String> dates = calculateFutureDates(effectiveDate, earlyRedempCycleMonths);
                     List<String> settlementDates = calculateSettlementDates(dates, settleDateOffset);
+                    List<String> exercisePrices = Arrays.asList(exercisePricesStr.split("-"));
 
                     // listParam 새로운 열을 생성
                     int rowIndex = listParam.createRow();
@@ -59,10 +63,12 @@ public class PostQuoteData {
                     for (int j = 0; j < 6; j++) {
                         listParam.setValue(rowIndex, columns[j], dates.get(j));
                         listParam.setValue(rowIndex, columns[6 + j], settlementDates.get(j));
+                        listParam.setValue(rowIndex, columns[12 + j], exercisePrices.get(j));
                     }
 
                     log.debug("Calculated future dates for JSON object {}: {}", i, String.join(", ", dates));
                     log.debug("Calculated settlement dates for JSON object {}: {}", i, String.join(", ", settlementDates));
+                    log.debug("Exercise Prices for JSON object {}: {}", i, String.join(", ", exercisePrices));
                 }
 
                 log.debug("Final ListParam with multiple rows: {}", listParam.toString());
