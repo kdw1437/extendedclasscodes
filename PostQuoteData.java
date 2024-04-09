@@ -54,7 +54,7 @@ public class PostQuoteData {
                     LocalDate effectiveDate = LocalDate.parse(effectiveDateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
                     List<String> dates = calculateFutureDates(effectiveDate, earlyRedempCycleMonths);
                     List<String> settlementDates = calculateSettlementDates(dates, settleDateOffset);
-                    List<String> exercisePrices = Arrays.asList(exercisePricesStr.split("-"));
+                    List<String> exercisePrices = Arrays.asList(exercisePricesStr.split("-")); //Array.asList 메소드는 parameter(array)를 List 타입으로 바꾸어 준다.
 
                     // listParam 새로운 열을 생성
                     int rowIndex = listParam.createRow();
