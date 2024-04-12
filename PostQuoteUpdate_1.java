@@ -33,7 +33,7 @@ public class PostQuoteUpdate_1 {
         
         try {
             JSONArray jsonArray = new JSONArray(jsonStr);
-            String[] columns = {"productId", "exercisePrice", "couponRate", "redemday", "settlement"};
+            String[] columns = {"productId", "exercisePrice", "couponRate", "redemday", "settlement", "SQNC"};
             ListParam listParam = new ListParam(columns);
             
             DecimalFormat decimalFormat = new DecimalFormat("0.000"); // Format to two decimal places
@@ -49,7 +49,8 @@ public class PostQuoteUpdate_1 {
                 LocalDate effectiveDate = LocalDate.parse(jsonObject.getString("effectiveDate"), DateTimeFormatter.ofPattern("yyyyMMdd"));
 
                 LocalDate lastAdjustedDate = effectiveDate; // Keep track of the last adjusted date
-
+                int SQNC = 1;
+                
                 for (int j = 0; j < exercisePrices.length; j++) {
                     double decimalPrice = Double.parseDouble(exercisePrices[j].trim()) / 100.0;
                     BigDecimal termCouponBD = new BigDecimal(annualCoupon / 2)
@@ -72,6 +73,8 @@ public class PostQuoteUpdate_1 {
                     listParam.setValue(rowIdx, "couponRate", termCouponBD.doubleValue());
                     listParam.setValue(rowIdx, "redemday", redemptionDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
                     listParam.setValue(rowIdx, "settlement", settlementDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                    listParam.setValue(rowIdx, "SQNC", SQNC);
+                    SQNC++;
                 }
             }
             
