@@ -33,7 +33,7 @@ public class PostQuoteUpdate_1 {
         
         try {
             JSONArray jsonArray = new JSONArray(jsonStr);
-            String[] columns = {"productId", "exercisePrice", "couponRate", "redemday", "settlement", "SQNC"};
+            String[] columns = {"GDS_ID", "ACTP_RT", "CPN_RT", "EVLT_DT", "SETL_DT", "SQNC"};
             ListParam listParam = new ListParam(columns);
             
             DecimalFormat decimalFormat = new DecimalFormat("0.000"); // Format to two decimal places
@@ -67,12 +67,12 @@ public class PostQuoteUpdate_1 {
                     settlementDate = adjustForWeekendAndHolidays(settlementDate);
 
                     int rowIdx = listParam.createRow();
-                    listParam.setValue(rowIdx, "productId", productId);
-                    listParam.setValue(rowIdx, "exercisePrice", decimalPrice);
+                    listParam.setValue(rowIdx, "GDS_ID", productId);
+                    listParam.setValue(rowIdx, "ACTP_RT", decimalPrice);
                     //listParam.setValue(rowIdx, "couponRate", termCouponFormatted);
-                    listParam.setValue(rowIdx, "couponRate", termCouponBD.doubleValue());
-                    listParam.setValue(rowIdx, "redemday", redemptionDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                    listParam.setValue(rowIdx, "settlement", settlementDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                    listParam.setValue(rowIdx, "CPN_RT", termCouponBD.doubleValue());
+                    listParam.setValue(rowIdx, "EVLT_DT", redemptionDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                    listParam.setValue(rowIdx, "SETL_DT", settlementDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
                     listParam.setValue(rowIdx, "SQNC", SQNC);
                     SQNC++;
                 }
@@ -81,6 +81,10 @@ public class PostQuoteUpdate_1 {
             log.debug("Updated ListParam: {}", listParam.toString());
             
             log.debug("Updated ListParam: {}", listParam.toString());
+            
+            dao.setValue("insertExecSchdPrtcTp", listParam);
+            
+            dao.sqlexe("s_insertExecSchdPrtc", false);
         } catch (Exception e) {
             log.error("Error processing JSON data", e);
         }
