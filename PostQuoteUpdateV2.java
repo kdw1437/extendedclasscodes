@@ -151,6 +151,76 @@ public class PostQuoteUpdateV2 {
         } catch (Exception e) {
         	log.error("Error processing JSON data", e);
         }
+        
+        try {
+        	JSONArray jsonArray = new JSONArray(jsonStr);
+        	String[] columns = {"GDS_ID", "SEQ", "GDS_TYPE_TP", "BUY_SELL_TP"};
+        	ListParam listParam = new ListParam(columns);
+        	
+        	for (int i=0; i<jsonArray.length(); i++) {
+        		JSONObject jsonObject = jsonArray.getJSONObject(i);
+        		int productId = jsonObject.getInt("productId");
+        		int seq = 1;
+        		String productType = jsonObject.getString("productType");
+        		/*if (jsonObject.getString("buySellType") != null) {
+        		String buySellType = jsonObject.getString("buySellType");
+        		} else
+        		*/
+        		String buySellType = "매도";
+        		int buySellCode;
+        		if (buySellType.equals("매도")) {
+        			buySellCode = 1;
+        		} else if (buySellType.equals("매수")) {
+        			buySellCode = 2;
+        		} else {
+        			buySellCode = 3;
+        		}
+        		
+        		String gdsTypeTp;
+        		if (productType.equals("StepDown") || productType.equals("Lizard")) {
+        			gdsTypeTp = "STD";
+        		} else if (productType.equals("KnockOut")) {
+        			gdsTypeTp = "VKO";
+        		} else if (productType.equals("TwoWayKnockOut")) {
+        			gdsTypeTp = "WAY";
+        		} else {
+        			gdsTypeTp = null;
+        		}
+        		
+        		int rowIdx = listParam.createRow();
+        		listParam.setValue(rowIdx, "GDS_ID", productId);
+				listParam.setValue(rowIdx, "SEQ", seq);
+				listParam.setValue(rowIdx, "GDS_TYPE_TP", gdsTypeTp);
+				listParam.setValue(rowIdx, "BUY_SELL_TP", buySellCode);
+        		
+        	}
+        	
+        	log.debug("Updated ListParam: {}", listParam.toString());
+        	
+        } catch (Exception e) {
+        	log.error("Error processing JSON data", e);
+        }
+        
+        try {
+        	JSONArray jsonArray = new JSONArray(jsonStr);
+        	String[] columns = {"GDS_ID", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
+        	ListParam listParam = new ListParam(columns);
+        	
+        	for (int i = 0; i < jsonArray.length(); i++) {
+        		JSONObject jsonObject = jsonArray.getJSONObject(i);
+        		int productId = jsonObject.getInt("productId");
+        		
+        		String execType = "A"; //이거 수정 필요 jsonObject에 데이터가 존재하게 되면 get메소드를 사용해서, value를 가져오고, switch문이나 if-else if문을 이용해서 수정해 줘야 함
+        		String sourceCondType = "W"; //이것도 수정 필요. 지금은 하드 코딩되어 있는데, jsonObject로 부터 얻어와야 함.
+        		String condRangeType = "IO"; //이것도 수정 필요.
+        		double yearlyCouponRate = jsonObject.getDouble("coupon");
+        		double dummyCouponRate = 0.228; //이것도 수정 필요. dummy Coupon이 2종류가 있어서, 어떤 값이 들어갈지 식별을 해야 한다.
+        		int lossParticipationRate = jsonObject.optInt("lossParticipationRate", null);//이거 null을 parameter로 못 받지 때문에, optInt에 에러가 뜬다. 수정 필요.
+        		
+        	}
+        } catch (Exception e) {
+        	
+        }
 
 }
     private LocalDate adjustForWeekendAndHolidays(LocalDate date) {
