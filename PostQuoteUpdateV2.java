@@ -203,7 +203,7 @@ public class PostQuoteUpdateV2 {
         
         try {
         	JSONArray jsonArray = new JSONArray(jsonStr);
-        	String[] columns = {"GDS_ID", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
+        	String[] columns = {"GDS_ID", "EXEC_TP", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
         	ListParam listParam = new ListParam(columns);
         	
         	for (int i = 0; i < jsonArray.length(); i++) {
@@ -213,13 +213,25 @@ public class PostQuoteUpdateV2 {
         		String execType = "A"; //이거 수정 필요 jsonObject에 데이터가 존재하게 되면 get메소드를 사용해서, value를 가져오고, switch문이나 if-else if문을 이용해서 수정해 줘야 함
         		String sourceCondType = "W"; //이것도 수정 필요. 지금은 하드 코딩되어 있는데, jsonObject로 부터 얻어와야 함.
         		String condRangeType = "IO"; //이것도 수정 필요.
-        		double yearlyCouponRate = jsonObject.getDouble("coupon");
+        		//double yearlyCouponRate = jsonObject.getDouble("coupon");
+        		Double yearlyCouponRate = jsonObject.isNull("coupon") ? null : jsonObject.getDouble("coupon");
         		double dummyCouponRate = 0.228; //이것도 수정 필요. dummy Coupon이 2종류가 있어서, 어떤 값이 들어갈지 식별을 해야 한다.
-        		int lossParticipationRate = jsonObject.optInt("lossParticipationRate", null);//이거 null을 parameter로 못 받지 때문에, optInt에 에러가 뜬다. 수정 필요.
+        		//int lossParticipationRate = jsonObject.getInt("lossParticipationRate");//이거 null을 parameter로 못 받지 때문에, optInt에 에러가 뜬다. 수정 필요.
+        		Integer lossParticipationRate = jsonObject.isNull("lossParticipationRate") ? null : jsonObject.getInt("lossParticipationRate");
+        		
+        		int rowIdx = listParam.createRow();
+        		listParam.setValue(rowIdx, "GDS_ID", productId);
+        		listParam.setValue(rowIdx, "EXEC_TP", execType);
+        		listParam.setValue(rowIdx, "SRC_COND_TP", sourceCondType);
+        		listParam.setValue(rowIdx, "COND_RANGE_TP", condRangeType);
+        		listParam.setValue(rowIdx, "YY_CPN_RT", yearlyCouponRate);
+        		listParam.setValue(rowIdx, "DUMY_CPN_RT", dummyCouponRate);
+        		listParam.setValue(rowIdx, "LOSS_PART_RT", lossParticipationRate);
+        		
         		
         	}
         } catch (Exception e) {
-        	
+        	log.error("Error processing JSON data", e);
         }
 
 }
