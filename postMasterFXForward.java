@@ -10,7 +10,7 @@ import com.uro.service.sql.SQLServiceException;
 import com.uro.transfer.ListParam;
 import com.uro.transfer.ParamException;
 
-public class postMasterDDiv {
+public class postMasterFXForward {
     Logger log = LoggerMg.getInstance().getLogger();
 
     public void execute(DaoService dao) {
@@ -21,28 +21,28 @@ public class postMasterDDiv {
 	    		String jsonStr = dao.getStringValue("a");
 		    	   
 		    	JSONArray jsonArray = new JSONArray(jsonStr);
-	            String[] columns = {"DATA_ID", "DATA_NM", "DVID_TP", "CRNC_CODE"};
+	            String[] columns = {"DATA_ID", "DATA_NM", "CRNC_CODE", "RELT_CRNC_CODE"};
 	            ListParam listParam = new ListParam(columns);
 	            
 	            for (int i = 0; i < jsonArray.length(); i++) {
 	            	JSONObject jsonObj = jsonArray.getJSONObject(i);
 	            	String dataId = jsonObj.getString("dataId");
-	            	String dataNm = dataId.replace("_D_CALB", "") + " 보정 이산배당흐름";
-	            	String dvidTp = "2";
-	            	String crncCode = jsonObj.getString("crncCode");
+	            	String dataNm = jsonObj.getString("dataNM");
+	            	String crncCode = jsonObj.getString("crnc");
+	            	String reltCrnc = jsonObj.getString("reltCrnc");
 	            	
 	            	int rowIdx = listParam.createRow();
 	            	listParam.setValue(rowIdx, "DATA_ID", dataId);
 	            	listParam.setValue(rowIdx, "DATA_NM", dataNm);
-	            	listParam.setValue(rowIdx, "DVID_TP", dvidTp);
 	            	listParam.setValue(rowIdx, "CRNC_CODE", crncCode);
+	            	listParam.setValue(rowIdx, "RELT_CRNC_CODE", reltCrnc);
 	            }
 	            //log.info(listParam.toString());
 	            log.info(listParam.toString());
 	            
-	            dao.setValue("insertDDivMasterTp", listParam);
+	            dao.setValue("insertFXForwardMasterTp", listParam);
 	            
-	            dao.sqlexe("s_insertDDivMaster", false);
+	            dao.sqlexe("s_insertFXForwardMaster", false);
     		  
     	} catch (Exception e) {
     		log.error("Error processing jsondata into listParam", e);
