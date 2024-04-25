@@ -49,7 +49,7 @@ public class PostQuoteUpdateV3 {
 					case "StepDown":
 						QuoteProcessMethods.performStepDownInsert(dao, jsonObject);
 						break;	
-					case "Lizard":
+					case "Lizard1": //이거 테스트를 위해 잠시 수정함. 나중에 다시 수정 필요.
 						QuoteProcessMethods.performLizardInsert(dao, jsonObject);
 						break;
 					default:
