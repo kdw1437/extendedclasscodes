@@ -599,4 +599,40 @@ public class QuoteProcessMethods {
  			log.error("Error performing database operation, rollback initiated.", e);
 		}
 	}
+	
+	public static void performKnockOutInsert(DaoService dao, JSONObject jsonObject) {
+		try {
+			Integer productId = getNullableInteger(jsonObject, "productId");
+			String effectiveDate = jsonObject.optString("effectiveDate", null);
+			String productType = jsonObject.optString("productType", null);
+			Integer earlyRedempCycle = getNullableInteger(jsonObject, "earlyRedempCycle");
+			Integer settleDateOffset =  getNullableInteger(jsonObject, "settleDateOffset");
+			Integer maturityEvaluationDays = getNullableInteger(jsonObject, "maturityEvaluationDays");
+			String underlyingAsset1 = jsonObject.optString("underlyingAsset1", null);
+			String underlyingAsset2 = jsonObject.optString("underlyingAsset2", null);
+			String underlyingAsset3 = jsonObject.optString("underlyingAsset3", null);
+			//String exercisePrices = jsonObject.optString("exercisePrices", null);
+			//Double coupon = getNullableDouble(jsonObject, "coupon");
+			//Double lizardCoupon = getNullableDouble(jsonObject, "lizardCoupon");
+			//Integer lossParticipationRate = getNullableInteger(jsonObject, "lossParticipationRate");
+			//Integer kiBarrier = getNullableInteger(jsonObject, "kiBarrier");
+			String calculationCurrency = jsonObject.optString("calculationCurrency", null);
+			Integer principalProtectedRate = getNullableInteger(jsonObject, "principalProtectedRate");
+			Integer callBarrier = getNullableInteger(jsonObject, "callBarrier");
+			Integer callParticipationRate = getNullableInteger(jsonObject, "callParticipationRate");
+			Integer koBarrierUpside = getNullableInteger(jsonObject, "koBarrierUpside");
+			Integer dummyCouponUpSide = getNullableInteger(jsonObject, "dummyCouponUpSide");
+			
+			
+			
+			dao.commit();
+            log.debug("Transaction committed successfully.");
+            
+		} catch (Exception e) {
+			dao.rollback();
+ 			
+ 			e.printStackTrace();
+ 			log.error("Error performing database operation, rollback initiated.", e);
+		}
+	}
 }
