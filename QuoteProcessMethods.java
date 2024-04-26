@@ -227,7 +227,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", exerciseDates.get(i).format(formatter));
             	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
-            	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*i/2.0);
+            	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = exerciseDates.get(i);
             	LocalDate adjustedDate = initialDate.plusDays(2);
             	adjustedDate = adjustForWeekendAndHolidays(adjustedDate);
@@ -241,8 +241,59 @@ public class QuoteProcessMethods {
             
             log.debug("insertOTCEXECSCHDPRTC done");
             
+            //7번째, 8번째 테이블
+            if (kiBarrier != null) {
+            	String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
+            	ListParam listParam7= new ListParam(columns7);
+            	
+            	int rowIdx7 = listParam7.createRow();
+            	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+            	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
+            	listParam7.setValue(rowIdx7, "LEG_NO", 0);
+            	listParam7.setValue(rowIdx7, "BRR_TP", "KI");
+            	listParam7.setValue(rowIdx7, "BRR_GDS_NO","1");
+            	listParam7.setValue(rowIdx7, "SRC_COND_TP", "W");
+            	listParam7.setValue(rowIdx7, "COND_RANGE_TP", "OI");
+            	listParam7.setValue(rowIdx7, "OBRA_PRIC_TYPE_TP", "CP");
+            	
+            	dao.setValue("insertOTCBRRMSTR", listParam7);
+            	
+            	dao.sqlexe("s_insertOTCBRRMSTR", false);
+            	
+            	log.debug("insertOTCBRRMSTR done");
+            	
+            	String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT",
+            			"OBRA_END_DT", "BRR_RT"};
+            	ListParam listParam8 = new ListParam(columns8);
+            	
+            	int rowIdx8 = listParam8.createRow();
+            	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+            	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
+            	listParam8.setValue(rowIdx8, "LEG_NO", 0);
+            	listParam8.setValue(rowIdx8, "BRR_TP", "KI");
+            	listParam8.setValue(rowIdx8, "BRR_GDS_NO", "1");
+            	listParam8.setValue(rowIdx8, "SQNC", 1);
+            	listParam8.setValue(rowIdx8, "OBRA_STRT_DT", effectiveDate);
+            	listParam8.setValue(rowIdx8, "OBRA_END_DT", endDate);
+            	listParam8.setValue(rowIdx8, "BRR_RT", kiBarrier);
+            	
+            	dao.setValue("insertOTCBRRSCHDPRTC", listParam8);
+            	
+            	dao.sqlexe("s_insertOTCBRRSCHDPRTC", false);
+            	
+            	log.debug("insertOTCBRRSCHDPRTC done");
+            } else {
+            	//No operation(NOP)
+            }
+            
+            dao.commit();
+            log.debug("Transaction committed successfully.");
+            
 		} catch (Exception e) {
+			dao.rollback();
+			
 			e.printStackTrace();
+			log.error("Error performing database operation, rollback initiated.", e);
 		}
 	}
 	
