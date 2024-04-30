@@ -54,8 +54,10 @@ public class PostQuoteUpdateV3 {
 						break;
 					case "KnockOut": //이거 query문 추가가 필요하다. sql query easyFrame서버에서 등록하고 확장클래스에 등록해주면 된다.
 						QuoteProcessMethods.performKnockOutInsert(dao, jsonObject);
+						break;
 					case "TwoWayKnockOut":
 						QuoteProcessMethods.performTwoWayKnockOutInsert(dao, jsonObject);
+						break;
 					default:
 						log.debug("Unhandled product type: " + productType);
 						break;
