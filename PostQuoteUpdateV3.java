@@ -49,9 +49,13 @@ public class PostQuoteUpdateV3 {
 					case "StepDown":
 						QuoteProcessMethods.performStepDownInsert(dao, jsonObject);
 						break;	
-					case "Lizard": //이거 테스트를 위해 잠시 수정함. 나중에 다시 수정 필요.
+					case "Lizard": 
 						QuoteProcessMethods.performLizardInsert(dao, jsonObject);
 						break;
+					case "KnockOut": //이거 query문 추가가 필요하다. sql query easyFrame서버에서 등록하고 확장클래스에 등록해주면 된다.
+						QuoteProcessMethods.performKnockOutInsert(dao, jsonObject);
+					case "TwoWayKnockOut":
+						QuoteProcessMethods.performTwoWayKnockOutInsert(dao, jsonObject);
 					default:
 						log.debug("Unhandled product type: " + productType);
 						break;

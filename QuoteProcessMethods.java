@@ -127,7 +127,7 @@ public class QuoteProcessMethods {
 			int rowIdx2 = listParam2.createRow();
 			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
-            listParam2.setValue(rowIdx2, "ISIN_CODE", '1');
+            listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
             listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", kiBarrier != null ? "001" : "007");
@@ -382,7 +382,7 @@ public class QuoteProcessMethods {
 			int rowIdx2 = listParam2.createRow();
 			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
-            listParam2.setValue(rowIdx2, "ISIN_CODE", '1');
+            listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
             listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", kiBarrier != null ? "005" : "011");
@@ -621,7 +621,7 @@ public class QuoteProcessMethods {
 			Integer principalProtectedRate = getNullableInteger(jsonObject, "principalProtectedRate");
 			Integer callBarrier = getNullableInteger(jsonObject, "callBarrier");
 			Integer callParticipationRate = getNullableInteger(jsonObject, "callParticipationRate");
-			Integer koBarrierUpside = getNullableInteger(jsonObject, "koBarrierUpside");
+			Integer koBarrierUpSide = getNullableInteger(jsonObject, "koBarrierUpSide");
 			Integer dummyCouponUpSide = getNullableInteger(jsonObject, "dummyCouponUpSide");
 			
 	        // Parsing the effective date
@@ -662,7 +662,7 @@ public class QuoteProcessMethods {
 			int rowIdx2 = listParam2.createRow();
 			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
-            listParam2.setValue(rowIdx2, "ISIN_CODE", '1');
+            listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
             listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", "059"); //KnockOut 번호로 수정
@@ -740,11 +740,11 @@ public class QuoteProcessMethods {
             //이거 단위가 100단위로 들어가는 것 같은데, (1부터 해서 소수점으로 들어가는 것이 아님) 확인이 필요하다.
             listParam5.setValue(rowIdx5, "UP_PART_RT", callParticipationRate);
             
-            dao.setValue("insertOTCEXECMSTR", listParam5);
+            dao.setValue("insertOTCEXECMSTR2", listParam5);
             
-            dao.sqlexe("s_insertOTCEXECMSTR", false);
+            dao.sqlexe("s_insertOTCEXECMSTR2", false);
             
-            log.debug("insertOTCEXECMSTR done");
+            log.debug("insertOTCEXECMSTR2 done");
             
             //6번째 테이블: OTC_EXEC_SCHD_PRTC
             //이거 앞에 StepDown ELS와는 다르게 loop필요없이 한 값만 넣어주면 된다. (knockout의 경우, twoway knockout의 경우에는 2개의 값 넣어주기) 
@@ -770,12 +770,12 @@ public class QuoteProcessMethods {
         	
         	listParam6.setValue(rowIdx6, "SETL_DT", adjustedEndDatePlusTwoDays.format(formatter));
             //}
+        	        	
+            dao.setValue("insertOTCEXECSCHDPRTC2", listParam6);
             
-            dao.setValue("insertOTCEXECSCHDPRTC", listParam6);
+            dao.sqlexe("s_insertOTCEXECSCHDPRTC2", false);
             
-            dao.sqlexe("s_insertOTCEXECSCHDPRTC", false);
-            
-            log.debug("insertOTCEXECSCHDPRTC done");
+            log.debug("insertOTCEXECSCHDPRTC2 done");
             
             //7번째 테이블: OTC_BRR_MSTR
             String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
@@ -811,7 +811,7 @@ public class QuoteProcessMethods {
         	listParam8.setValue(rowIdx8, "SQNC", 1);
         	listParam8.setValue(rowIdx8, "OBRA_STRT_DT", effectiveDate);
         	listParam8.setValue(rowIdx8, "OBRA_END_DT", endDate.format(formatter));
-        	listParam8.setValue(rowIdx8, "BRR_RT", koBarrierUpside/100.0);
+        	listParam8.setValue(rowIdx8, "BRR_RT", koBarrierUpSide/100.0);
         	
         	dao.setValue("insertOTCBRRSCHDPRTC", listParam8);
         	
@@ -831,8 +831,284 @@ public class QuoteProcessMethods {
  			log.error("Error performing database operation, rollback initiated.", e);
 		}
 	}
-	
+	//4번까지 작성. 5번부터 작성해 주어야 한다.
 	public static void performTwoWayKnockOutInsert(DaoService dao, JSONObject jsonObject) {
-		
+		try {
+			Integer productId = getNullableInteger(jsonObject, "productId");
+			String effectiveDate = jsonObject.optString("effectiveDate", null);
+			String productType = jsonObject.optString("productType", null);
+			Integer earlyRedempCycle = getNullableInteger(jsonObject, "earlyRedempCycle");
+			Integer settleDateOffset =  getNullableInteger(jsonObject, "settleDateOffset");
+			Integer maturityEvaluationDays = getNullableInteger(jsonObject, "maturityEvaluationDays");
+			String underlyingAsset1 = jsonObject.optString("underlyingAsset1", null);
+			String underlyingAsset2 = jsonObject.optString("underlyingAsset2", null);
+			String underlyingAsset3 = jsonObject.optString("underlyingAsset3", null);
+			//String exercisePrices = jsonObject.optString("exercisePrices", null);
+			//Double coupon = getNullableDouble(jsonObject, "coupon");
+			//Double lizardCoupon = getNullableDouble(jsonObject, "lizardCoupon");
+			//Integer lossParticipationRate = getNullableInteger(jsonObject, "lossParticipationRate");
+			//Integer kiBarrier = getNullableInteger(jsonObject, "kiBarrier");
+			String calculationCurrency = jsonObject.optString("calculationCurrency", null);
+			Integer principalProtectedRate = getNullableInteger(jsonObject, "principalProtectedRate");
+			Integer callBarrier = getNullableInteger(jsonObject, "callBarrier");
+			Integer callParticipationRate = getNullableInteger(jsonObject, "callParticipationRate");
+			Integer koBarrierUpSide = getNullableInteger(jsonObject, "koBarrierUpSide");
+			Integer dummyCouponUpSide = getNullableInteger(jsonObject, "dummyCouponUpSide");
+			Integer putBarrier = getNullableInteger(jsonObject, "putBarrier");
+			Integer putParticipationRate = getNullableInteger(jsonObject, "putParticipationRate");
+			Integer koBarrierDownSide = getNullableInteger(jsonObject, "koBarrierDownSide");
+			Integer dummyCouponDownSide = getNullableInteger(jsonObject, "dummyCouponDownSide");
+	        // Parsing the effective date
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+	        LocalDate effectiveDateParsed = LocalDate.parse(effectiveDate, formatter);
+	        
+	        // Calculating the end date by adding early redemption cycle months and adjusting for weekends and holidays
+	        LocalDate endDate = adjustForWeekendAndHolidays(effectiveDateParsed.plusMonths(earlyRedempCycle));
+	        
+	        LocalDate datePlusTwoDays = endDate.plusDays(2);
+
+	        // Adjust the datePlusTwoDays for weekends and holidays
+	        LocalDate adjustedDatePlusTwoDays = adjustForWeekendAndHolidays(datePlusTwoDays);
+			
+			//첫번째 테이블: OTC_GDS_MSTR
+			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
+			ListParam listParam1 = new ListParam(columns1);
+			
+			int rowIdx1 = listParam1.createRow();
+			listParam1.setValue(rowIdx1, "GDS_ID", productId);
+			listParam1.setValue(rowIdx1, "CNTR_HSTR_NO", 1);
+			listParam1.setValue(rowIdx1, "SEQ", 1);
+			listParam1.setValue(rowIdx1, "CNTR_ID", productId);
+			listParam1.setValue(rowIdx1, "GDS_TYPE_TP", "WAY"); //이거 WAY(TwoWay Knock Out으로 수정)
+			listParam1.setValue(rowIdx1, "BUY_SELL_TP", "1");
+			
+            dao.setValue("insertOTCGDSMSTRTp", listParam1);
+
+            // SQL문을 실행한다.
+            dao.sqlexe("s_insertGdsMstr", false);
+            
+            log.debug("insertGdsMstrquerydone");
+            
+            //두번째 테이블: OTC_CNTR_MSTR
+            String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
+            		"BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
+			ListParam listParam2 = new ListParam(columns2);
+			
+			int rowIdx2 = listParam2.createRow();
+			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
+            listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
+            listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
+            listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
+            listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
+            listParam2.setValue(rowIdx2, "GDS_TMPL_TP", "025"); //Twoway KnockOut 번호로 수정
+            listParam2.setValue(rowIdx2, "DEAL_DT", effectiveDate);
+            listParam2.setValue(rowIdx2, "AVLB_DT", effectiveDate);
+            listParam2.setValue(rowIdx2, "END_DT", endDate.format(formatter)); //endDate는 effectiveDate로 부터 12개월 뒤, 12개월 뒤가 휴일일 시, 휴일에서 밀려서 workingday로 지정됨.
+            listParam2.setValue(rowIdx2, "BUY_SELL_TP", "1");
+            listParam2.setValue(rowIdx2, "NMNL_AMT", 30000000);
+            listParam2.setValue(rowIdx2, "NMNL_AMT_CRNC_CODE", calculationCurrency);
+            listParam2.setValue(rowIdx2, "FV_LEVL_TP", "3");
+            listParam2.setValue(rowIdx2, "INSD_OTSD_EVLT_TP", "I");
+            listParam2.setValue(rowIdx2, "BASEP_DTRM_DT", effectiveDate);
+            
+            dao.setValue("insertOTCCNTRMSTR", listParam2);
+            
+            dao.sqlexe("s_insertOTCCNTRMSTR", false);
+            
+            log.debug("insertOTCCNTRMSTR");
+            
+            //세번째 테이블: OTC_LEG_MSTR
+			String[] columns3 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO"};
+            ListParam listParam3 = new ListParam(columns3);
+            
+            int rowIdx3 = listParam3.createRow();
+            listParam3.setValue(rowIdx3, "GDS_ID", productId);
+            listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
+            listParam3.setValue(rowIdx3, "LEG_NO", 0);
+            
+            dao.setValue("insertOTCLEGMSTR", listParam3);
+            
+            dao.sqlexe("s_insertOTCLEGMSTR", false);
+            
+            log.debug("insertOTCLEGMSTRdone");
+            
+          //네번째 테이블: OTC_CNTR_UNAS_PRTC
+            String[] columns4 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
+            ListParam listParam4 = new ListParam(columns4);
+            
+            String[] underlyingAssets= {underlyingAsset1, underlyingAsset2, underlyingAsset3};
+            
+            int seq = 1;
+            for (String asset: underlyingAssets) {
+            	if (asset != null) {
+            		int rowIdx4 = listParam4.createRow();
+            		listParam4.setValue(rowIdx4, "CNTR_ID", productId);
+            		listParam4.setValue(rowIdx4, "CNTR_HSTR_NO", 1);
+            		listParam4.setValue(rowIdx4, "SEQ", seq++);
+            		listParam4.setValue(rowIdx4, "UNAS_ID", asset);
+            		listParam4.setValue(rowIdx4, "LEG_NO", 0);
+            	}
+            }
+            
+            dao.setValue("insertOTCCNTRUNASPRTC", listParam4);
+            
+            dao.sqlexe("s_insertOTCCNTRUNASPRTC", false);
+            
+            log.debug("insertOTCCNTRUNASPRTC done");
+            
+            //5번째 테이블: OTC_EXEC_MSTR, 이거 column수정이 있어서, null값을 column에 넣어주거나, query를 수정할 필요가 있다.
+            //query를 수정해야 한다. 새로운 column, UP_PART_RT가 들어옴. 이거 upsert query로 처리해주어야 한다.
+            //위의 knockout과 같은 query를 사용할 수 있는지 확인해야 한다. (같은 query를 사용할 수 있는 것 같다. listParam객체인데 2개의 row로 이루어진 객체를 만들어주면 된다.
+            //twoWayKnockOut 2개의 row, KnockOut 1개의 row.
+            String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "UP_PART_RT"};
+            ListParam listParam5 = new ListParam(columns5);
+            
+            //Double callParticipationRateDouble = callParticipationRate != null ? callParticipationRate / 100.0 : null;
+            
+            int rowIdx5 = listParam5.createRow();
+            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
+            listParam5.setValue(rowIdx5, "LEG_NO", 0);
+            listParam5.setValue(rowIdx5, "EXEC_TP", "V");
+            listParam5.setValue(rowIdx5, "EXEC_GDS_NO", "1");
+            listParam5.setValue(rowIdx5, "SRC_COND_TP", "W");
+            listParam5.setValue(rowIdx5, "COND_RANGE_TP", "IO");
+            //이거 단위가 100단위로 들어가는 것 같은데, (1부터 해서 소수점으로 들어가는 것이 아님) 확인이 필요하다.
+            listParam5.setValue(rowIdx5, "UP_PART_RT", callParticipationRate);
+            
+            rowIdx5 = listParam5.createRow();
+            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
+            listParam5.setValue(rowIdx5, "LEG_NO", 0);
+            listParam5.setValue(rowIdx5, "EXEC_TP", "V");
+            listParam5.setValue(rowIdx5, "EXEC_GDS_NO", "2"); //이 값이 6번째 테이블에서 twoway knockout의 call, put 식별자로 사용되어 진다.
+            listParam5.setValue(rowIdx5, "SRC_COND_TP", "W");
+            listParam5.setValue(rowIdx5, "COND_RANGE_TP", "OI");
+            //이거 단위가 100단위로 들어가는 것 같은데, (1부터 해서 소수점으로 들어가는 것이 아님) 확인이 필요하다.
+            listParam5.setValue(rowIdx5, "UP_PART_RT", putParticipationRate);
+            
+            dao.setValue("insertOTCEXECMSTR2", listParam5);
+            
+            dao.sqlexe("s_insertOTCEXECMSTR2", false);
+            
+            log.debug("insertOTCEXECMSTR2 done");
+            
+            //6번째 테이블: OTC_EXEC_SCHD_PRTC
+            //이거 앞에 StepDown ELS와는 다르게 loop필요없이 한 값만 넣어주면 된다. (knockout의 경우, twoway knockout의 경우에는 2개의 값 넣어주기) 
+            //CPN_RT가 빠졌기 때문에, SQL query를 따로 작성해 주어야 한다.
+            String[] columns6 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SQNC", "EVLT_DT", "ACTP_RT", "SETL_DT"};
+            ListParam listParam6 = new ListParam(columns6);
+            //int sqnc = 1;
+            //for (int i = 0; i < mainPrices.size(); i++) { //Price(barrier)의 arraylist를 사용하기 때문에, length에서 size()로 바꾼다. length는 array의 길이 return. size()는 arrayList의 길이 return.
+        	int rowIdx6 = listParam6.createRow();
+        	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+        	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
+        	listParam6.setValue(rowIdx6, "LEG_NO", 0);
+        	listParam6.setValue(rowIdx6, "EXEC_TP", "V");
+        	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
+        	listParam6.setValue(rowIdx6, "SQNC", 1);
+        	listParam6.setValue(rowIdx6, "EVLT_DT", endDate.format(formatter));
+        	
+        	listParam6.setValue(rowIdx6, "ACTP_RT", callBarrier/100.0); //callBarrier가 행사가율로 생각되어 진다.
+        	//listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
+        	//LocalDate initialDate = exerciseDates.get(i);
+        	LocalDate endDatePlusTwoDays = endDate.plusDays(2);
+        	LocalDate adjustedEndDatePlusTwoDays = adjustForWeekendAndHolidays(endDatePlusTwoDays);
+        	
+        	listParam6.setValue(rowIdx6, "SETL_DT", adjustedEndDatePlusTwoDays.format(formatter));
+            //}
+        	rowIdx6 = listParam6.createRow();
+        	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+        	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
+        	listParam6.setValue(rowIdx6, "LEG_NO", 0);
+        	listParam6.setValue(rowIdx6, "EXEC_TP", "V");
+        	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "2"); //이 값만 2way knockout에서 다르다. (knockout과 차이)
+        	listParam6.setValue(rowIdx6, "SQNC", 1);
+        	listParam6.setValue(rowIdx6, "EVLT_DT", endDate.format(formatter));
+        	
+        	listParam6.setValue(rowIdx6, "ACTP_RT", callBarrier/100.0); //callBarrier가 행사가율로 생각되어 진다.
+        	//listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
+        	//LocalDate initialDate = exerciseDates.get(i);
+        	
+        	
+        	listParam6.setValue(rowIdx6, "SETL_DT", adjustedEndDatePlusTwoDays.format(formatter));
+        	
+            dao.setValue("insertOTCEXECSCHDPRTC2", listParam6);
+            
+            dao.sqlexe("s_insertOTCEXECSCHDPRTC2", false);
+            
+            log.debug("insertOTCEXECSCHDPRTC2 done");
+            
+            //7번째 테이블: OTC_BRR_MSTR
+            String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
+        	ListParam listParam7= new ListParam(columns7);
+        	
+        	int rowIdx7 = listParam7.createRow();
+        	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+        	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
+        	listParam7.setValue(rowIdx7, "LEG_NO", 0);
+        	listParam7.setValue(rowIdx7, "BRR_TP", "KO");
+        	listParam7.setValue(rowIdx7, "BRR_GDS_NO","1");
+        	listParam7.setValue(rowIdx7, "SRC_COND_TP", "W");
+        	listParam7.setValue(rowIdx7, "COND_RANGE_TP", "OI");
+        	listParam7.setValue(rowIdx7, "OBRA_PRIC_TYPE_TP", "CP");
+        	
+        	rowIdx7 = listParam7.createRow();
+        	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+        	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
+        	listParam7.setValue(rowIdx7, "LEG_NO", 0);
+        	listParam7.setValue(rowIdx7, "BRR_TP", "KO");
+        	listParam7.setValue(rowIdx7, "BRR_GDS_NO","2"); //lizard의 경우에는 BRR_GDS_NO는 같고, SQNC가 다르다. Two way knockout의 경우에는 BRR_GDS_NO를 다른 값으로 처리한다.
+        	listParam7.setValue(rowIdx7, "SRC_COND_TP", "W");
+        	listParam7.setValue(rowIdx7, "COND_RANGE_TP", "IO"); //이거 Two way knockout에서 추가됨.
+        	listParam7.setValue(rowIdx7, "OBRA_PRIC_TYPE_TP", "CP");
+        	
+        	dao.setValue("insertOTCBRRMSTR", listParam7);
+        	
+        	dao.sqlexe("s_insertOTCBRRMSTR", false);
+        	
+        	log.debug("insertOTCBRRMSTR done");
+        	
+        	//8번째 테이블: OTC_BRR_SCHD_PRTC
+        	String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT",
+        			"OBRA_END_DT", "BRR_RT"};
+        	ListParam listParam8 = new ListParam(columns8);
+        	
+        	int rowIdx8 = listParam8.createRow();
+        	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+        	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
+        	listParam8.setValue(rowIdx8, "LEG_NO", 0);
+        	listParam8.setValue(rowIdx8, "BRR_TP", "KO");
+        	listParam8.setValue(rowIdx8, "BRR_GDS_NO", "1");
+        	listParam8.setValue(rowIdx8, "SQNC", 1);
+        	listParam8.setValue(rowIdx8, "OBRA_STRT_DT", effectiveDate);
+        	listParam8.setValue(rowIdx8, "OBRA_END_DT", endDate.format(formatter));
+        	listParam8.setValue(rowIdx8, "BRR_RT", koBarrierUpSide/100.0);
+        	
+        	rowIdx8 = listParam8.createRow();
+        	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+        	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
+        	listParam8.setValue(rowIdx8, "LEG_NO", 0);
+        	listParam8.setValue(rowIdx8, "BRR_TP", "KO");
+        	listParam8.setValue(rowIdx8, "BRR_GDS_NO", "2"); //이거 knockout call, put을 다르게 처리
+        	listParam8.setValue(rowIdx8, "SQNC", 1); //SQNC는 하나로 처리. Lizard처럼 2 sequence가 아니다.
+        	listParam8.setValue(rowIdx8, "OBRA_STRT_DT", effectiveDate);
+        	listParam8.setValue(rowIdx8, "OBRA_END_DT", endDate.format(formatter));
+        	listParam8.setValue(rowIdx8, "BRR_RT", koBarrierDownSide/100.0);
+        	
+        	dao.setValue("insertOTCBRRSCHDPRTC", listParam8);
+        	
+        	dao.sqlexe("s_insertOTCBRRSCHDPRTC", false);
+        	
+        	log.debug("insertOTCBRRSCHDPRTC done");
+        	
+			dao.commit();
+			log.debug("Transaction committed successfully.");
+		} catch (Exception e) {
+			dao.rollback();
+			
+			e.printStackTrace();
+			log.error("Error performing database operation, rollback initiated.", e);
+		}
 	}
 }
