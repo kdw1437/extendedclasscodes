@@ -14,6 +14,18 @@ public class ProcessCorrs {
 
     public void execute(DaoService dao) {
         try {
+        	String currentBaseDt = dao.getStringValue("baseDt");
+            String currentDataIds = dao.getStringValue("dataIds");
+            
+            //1. baseDt가 null인 경우
+            if (currentBaseDt == null || currentBaseDt.trim().isEmpty()) {
+                throw new IllegalArgumentException("baseDt가 null이나 empty이다.");
+            }
+        	
+        	//2. dataIds가 null인 경우
+            if (currentDataIds == null || currentDataIds.trim().isEmpty()) {
+                throw new IllegalArgumentException("dataIds가 null이나 empty이다.");
+            }
             // SQL query문 실행
             dao.sqlexe("s_selCorrelation", false); // Use the SQL query ID for prices
             ListParam result = dao.getNowListParam(); // Get the result of the query
@@ -24,7 +36,7 @@ public class ProcessCorrs {
                 errorJson.put("error", "URL에 필요한 parameter를 제대로 입력하지 않았습니다.");
                 dao.setValue("response", errorJson.toMap());
                 log.info(errorJson.toString());
-                return;
+                throw new IllegalArgumentException("dataIds나 baseDt를 제대로 입력하지 않았습니다.");
             }
 
             // JSON구조를 초기화 한다.
@@ -55,6 +67,9 @@ public class ProcessCorrs {
         } catch (SQLServiceException e) {
             log.error("Error processing prices", e);
             dao.setError("Error processing prices: " + e.getMessage());
-        }
+        } catch (IllegalArgumentException e) {//IllegalArgumentException을 사용할 경우, 특정 error 메시지를 띄울 수 있다.
+			log.error("Validation error: " + e.getMessage(), e);
+			dao.setError(e.getMessage());
+		}
     }
 }

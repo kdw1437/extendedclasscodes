@@ -18,7 +18,21 @@ public class ProcessHisVols {
     	try {
     		dao.sqlexe("s_selectHistoricalVol_v1", false);
             ListParam result = dao.getNowListParam();
-    		
+            
+            //1. data validation
+        	String forValidBaseDt = dao.getStringValue("baseDt");
+            String forValidDataIds = dao.getStringValue("dataIds");
+            
+            //1.1. baseDt가 null인 경우
+            if (forValidBaseDt == null || forValidBaseDt.trim().isEmpty()) {
+                throw new IllegalArgumentException("baseDt가 null이나 empty이다.");
+            }
+        	
+        	//1.2. dataIds가 null인 경우
+            if (forValidDataIds == null || forValidDataIds.trim().isEmpty()) {
+                throw new IllegalArgumentException("dataIds가 null이나 empty이다.");
+            }
+            
             //validation
             if (result.rowSize() == 0) {
             	throw new ValidationException("No data");
@@ -46,10 +60,12 @@ public class ProcessHisVols {
             log.debug("HashMap contents: " + hashMap.toString());
     	} catch (ValidationException e) {
     		log.error("validation error", e);
-    		dao.setError("no data: " + e.getMessage());
+    		dao.setError(e.getMessage());
     	} catch (SQLServiceException e) {
     		log.error("sql exception error", e);
     		dao.setError("sqlException: " + e.getMessage());
+    	} catch (IllegalArgumentException e) {
+    		dao.setError(e.getMessage());
     	}
     	
     }

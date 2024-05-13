@@ -9,6 +9,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import java.util.*;
 
+import javax.xml.bind.ValidationException;
+
 public class ProcessPrices {
     Logger log = LoggerMg.getInstance().getLogger("fw");
 
@@ -18,13 +20,23 @@ public class ProcessPrices {
             dao.sqlexe("s_selectPrices_v1", false); // 가격에 대해 sqlqueryId를 실행한다.
             ListParam result = dao.getNowListParam(); // query결과를 얻는다.
 
-            // 결과없음을 check한다.
+            //1. data validation
+        	String forValidBaseDt = dao.getStringValue("baseDt");
+            String forValidDataIds = dao.getStringValue("dataIds");
+            
+            //1.1. baseDt가 null인 경우
+            if (forValidBaseDt == null || forValidBaseDt.trim().isEmpty()) {
+                throw new IllegalArgumentException("baseDt가 null이나 empty이다.");
+            }
+        	
+        	//1.2. dataIds가 null인 경우
+            if (forValidDataIds == null || forValidDataIds.trim().isEmpty()) {
+                throw new IllegalArgumentException("dataIds가 null이나 empty이다.");
+            }
+            
+            //validation
             if (result.rowSize() == 0) {
-                JSONObject errorJson = new JSONObject();
-                errorJson.put("error", "URL에 필요한 parameter를 제대로 입력하지 않았습니다.");
-                dao.setValue("response", errorJson.toMap());
-                log.info(errorJson.toString());
-                return;
+            	throw new IllegalArgumentException("No data");
             }
 
             // JSON 구조를 초기화한다.
@@ -74,6 +86,8 @@ public class ProcessPrices {
         } catch (SQLServiceException e) {
             log.error("Error processing prices", e);
             dao.setError("Error processing prices: " + e.getMessage());
-        }
+        }  catch (IllegalArgumentException e) {
+    		dao.setError(e.getMessage());
+    	}
     }
 }

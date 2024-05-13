@@ -17,14 +17,27 @@ public class ProcessDividends {
             // SQL query를 실핸한다.
             dao.sqlexe("s_selectDividends_v1", false); // 가격에 대한 sqlqueryId를 사용
             ListParam result = dao.getNowListParam(); // query의 결과를 얻는다.
-
+            
+            String currentBaseDt = dao.getStringValue("baseDt");
+            String currentDataIds = dao.getStringValue("dataIds");
+            
+            //1. baseDt가 null인 경우
+            if (currentBaseDt == null || currentBaseDt.trim().isEmpty()) {
+                throw new IllegalArgumentException("baseDt가 null이나 empty이다.");
+            }
+        	
+        	//2. dataIds가 null인 경우
+            if (currentDataIds == null || currentDataIds.trim().isEmpty()) {
+                throw new IllegalArgumentException("dataIds가 null이나 empty이다.");
+            }    
             // 결과 없음을 확인한다.
             if (result.rowSize() == 0) {
                 JSONObject errorJson = new JSONObject();
                 errorJson.put("error", "URL에 필요한 parameter를 제대로 입력하지 않았습니다.");
                 dao.setValue("response", errorJson.toMap());
                 log.info(errorJson.toString());
-                return;
+                //return;
+                throw new IllegalArgumentException("dataIds나 baseDt를 제대로 입력하지 않았습니다.");
             }
 
             // JSON구조를 초기화한다.
@@ -54,6 +67,9 @@ public class ProcessDividends {
         } catch (SQLServiceException e) {
             log.error("Error processing prices", e);
             dao.setError("Error processing prices: " + e.getMessage());
-        }
+        } catch (IllegalArgumentException e) {//IllegalArgumentException을 사용할 경우, 특정 error 메시지를 띄울 수 있다.
+			log.error("Validation error: " + e.getMessage(), e);
+			dao.setError(e.getMessage());
+		}
     }
 }
