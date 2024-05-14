@@ -22,6 +22,14 @@ public class PostPrices {
         
         
         try {
+        	
+        	// Validation
+            if (dataSetId == null || dataSetId.trim().isEmpty() || 
+                baseDt == null || baseDt.trim().isEmpty() || 
+                jsonStr == null || jsonStr.trim().isEmpty()) {
+                throw new IllegalArgumentException("Missing required parameters");
+            }
+            
             JSONArray jsonArray = new JSONArray(jsonStr);
             String[] columns = {"BASE_DT", "DATA_SET_ID", "DATA_ID", "CLOSE_PRIC"};
             ListParam listParam = new ListParam(columns);
@@ -46,7 +54,12 @@ public class PostPrices {
             dao.sqlexe("s_insertPrices", false);
         } catch (ParamException | SQLServiceException e) {
             log.error("Error executing PostPrices", e);
+            dao.setError(e.getMessage());
             // 예외를 다룬다.
+        } catch (IllegalArgumentException e) {
+        	dao.setError(e.getMessage());
+        } catch (Exception e) {
+        	dao.setError(e.getMessage());
         }
 }
 }
