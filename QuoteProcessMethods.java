@@ -33,9 +33,14 @@ public class QuoteProcessMethods {
         }
     }
     
-    private static List<LocalDate> holidays = Arrays.asList(
-            LocalDate.of(2023, 1, 1), // New Year's Day
+ /*   private static List<LocalDate> holidays = Arrays.asList(
+            LocalDate.of(2023, 1, 1), // New Year's Day            
             LocalDate.of(2023, 12, 25) // Christmas
+        );
+*/  
+    private static List<Holiday> holidays = Arrays.asList(
+            new Holiday(1, 1),  // 신년
+            new Holiday(12, 25) // 크리스마스
         );
     
     public static LocalDate adjustForWeekendAndHolidays(LocalDate date) {
@@ -45,13 +50,18 @@ public class QuoteProcessMethods {
         return date;
     }
 
-    private static boolean isWeekend(LocalDate date) {
+    public static boolean isWeekend(LocalDate date) {
         DayOfWeek day = date.getDayOfWeek();
         return day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
     }
 
-    private static boolean isHoliday(LocalDate date) {
+ /*   private static boolean isHoliday(LocalDate date) {
         return holidays.contains(date);
+    }*/
+    
+    public static boolean isHoliday(LocalDate date) {
+        Holiday currentDay = new Holiday(date.getMonthValue(), date.getDayOfMonth());
+        return holidays.contains(currentDay);
     }
 	//static method로 선언해서 사용. 객체 생성 필요없이 함수처럼 사용하면 된다.
 	//StepDown 상품인 경우 여기서 처리한다.
