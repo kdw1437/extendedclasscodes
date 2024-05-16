@@ -15,6 +15,7 @@ import com.uro.log.LoggerMg;
 import com.uro.transfer.ListParam;
 public class QuoteProcessMethods {
 	private static Logger log = LoggerMg.getInstance().getLogger();
+	private static LunarCalendar lunarCalendar = new LunarCalendar();
     // jsonObject(instance of class)의 특정 key(field)의 value가 null인 경우, null을 return하는 static 메소드
 	// static method가 특정 클래스 내에서 선언되면, 클래스 이름을 붙이지 않고 클래스 내의 다른 메소드에서 사용되어 질 수 있다.
     public static Integer getNullableInteger(JSONObject jsonObject, String key) {
@@ -33,16 +34,17 @@ public class QuoteProcessMethods {
         }
     }
     
- /*   private static List<LocalDate> holidays = Arrays.asList(
+/*	private static List<LocalDate> holidays = Arrays.asList(
             LocalDate.of(2023, 1, 1), // New Year's Day            
             LocalDate.of(2023, 12, 25) // Christmas
         );
-*/  
-    private static List<Holiday> holidays = Arrays.asList(
+*/ 
+/*    private static List<Holiday> holidays = Arrays.asList(
             new Holiday(1, 1),  // 신년
+            
             new Holiday(12, 25) // 크리스마스
         );
-    
+*/    
     public static LocalDate adjustForWeekendAndHolidays(LocalDate date) {
         while (isWeekend(date) || isHoliday(date)) {
             date = date.plusDays(1);
@@ -55,14 +57,17 @@ public class QuoteProcessMethods {
         return day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
     }
 
- /*   private static boolean isHoliday(LocalDate date) {
+    private static boolean isHoliday(LocalDate date) {
+        return lunarCalendar.isHoliday(date);
+    }
+    /*    private static boolean isHoliday(LocalDate date) {
         return holidays.contains(date);
     }*/
     
-    public static boolean isHoliday(LocalDate date) {
+/*    public static boolean isHoliday(LocalDate date) {
         Holiday currentDay = new Holiday(date.getMonthValue(), date.getDayOfMonth());
         return holidays.contains(currentDay);
-    }
+    }*/
 	//static method로 선언해서 사용. 객체 생성 필요없이 함수처럼 사용하면 된다.
 	//StepDown 상품인 경우 여기서 처리한다.
 	//data processing을 메소드에서 처리하는 것이 더 낫다.

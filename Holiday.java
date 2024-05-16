@@ -1,12 +1,18 @@
 package com.jurosys.extension.com;
 
 public class Holiday {
+    private int year;
     private int month;
     private int day;
 
-    public Holiday(int month, int day) {
+    public Holiday(int year, int month, int day) {
+        this.year = year;
         this.month = month;
         this.day = day;
+    }
+
+    public int getYear() {
+        return year;
     }
 
     public int getMonth() {
@@ -22,11 +28,11 @@ public class Holiday {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Holiday holiday = (Holiday) obj;
-        return month == holiday.month && day == holiday.day;
+        return year == holiday.year && month == holiday.month && day == holiday.day;
     }
 
     @Override
     public int hashCode() {
-        return 31 * month + day;
+        return 31 * year + 31 * month + day;
     }
 }
