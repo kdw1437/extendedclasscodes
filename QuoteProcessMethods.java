@@ -1,5 +1,6 @@
 package com.jurosys.extension.com;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -116,14 +117,26 @@ public class QuoteProcessMethods {
 	        // Logging or using the endDate
 	        log.debug(exerciseDates.toString());
 			//첫번째 테이블: OTC_GDS_MSTR
+	        dao.sqlexe("s_selectOTCSEQCNTRID", false);
+	        ListParam CNTRIDParam = dao.getNowListParam();
+	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+	        
+	        dao.sqlexe("s_selectCNTRGDSID", false);
+	        ListParam CNTRGDSIDParam = dao.getNowListParam();
+	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];
+	        
+	        String cntrCode = "QUOTE" + cntrID.toString(); 
+	        
+	        
+	        
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 			ListParam listParam1 = new ListParam(columns1);
 			
 			int rowIdx1 = listParam1.createRow();
-			listParam1.setValue(rowIdx1, "GDS_ID", productId);
+			listParam1.setValue(rowIdx1, "GDS_ID", gdsID);
 			listParam1.setValue(rowIdx1, "CNTR_HSTR_NO", 1);
 			listParam1.setValue(rowIdx1, "SEQ", 1);
-			listParam1.setValue(rowIdx1, "CNTR_ID", productId);
+			listParam1.setValue(rowIdx1, "CNTR_ID", cntrID);
 			listParam1.setValue(rowIdx1, "GDS_TYPE_TP", "STD");
 			listParam1.setValue(rowIdx1, "BUY_SELL_TP", "1");
 			
@@ -140,10 +153,10 @@ public class QuoteProcessMethods {
 			ListParam listParam2 = new ListParam(columns2);
 			
 			int rowIdx2 = listParam2.createRow();
-			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
+			listParam2.setValue(rowIdx2, "CNTR_ID", cntrID);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
             listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
-            listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
+            listParam2.setValue(rowIdx2, "CNTR_CODE", cntrCode);
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", kiBarrier != null ? "001" : "007");
             listParam2.setValue(rowIdx2, "DEAL_DT", effectiveDate);
@@ -166,7 +179,7 @@ public class QuoteProcessMethods {
             ListParam listParam3 = new ListParam(columns3);
             
             int rowIdx3 = listParam3.createRow();
-            listParam3.setValue(rowIdx3, "GDS_ID", productId);
+            listParam3.setValue(rowIdx3, "GDS_ID", gdsID);
             listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
             listParam3.setValue(rowIdx3, "LEG_NO", 0);
             
@@ -186,7 +199,7 @@ public class QuoteProcessMethods {
             for (String asset: underlyingAssets) {
             	if (asset != null) {
             		int rowIdx4 = listParam4.createRow();
-            		listParam4.setValue(rowIdx4, "CNTR_ID", productId);
+            		listParam4.setValue(rowIdx4, "CNTR_ID", cntrID);
             		listParam4.setValue(rowIdx4, "CNTR_HSTR_NO", 1);
             		listParam4.setValue(rowIdx4, "SEQ", seq++);
             		listParam4.setValue(rowIdx4, "UNAS_ID", asset);
@@ -207,7 +220,7 @@ public class QuoteProcessMethods {
             ListParam listParam5 = new ListParam(columns5);
             
             int rowIdx5 = listParam5.createRow();
-            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "GDS_ID", gdsID);
             listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
             listParam5.setValue(rowIdx5, "LEG_NO", 0);
             listParam5.setValue(rowIdx5, "EXEC_TP", "A");
@@ -234,7 +247,7 @@ public class QuoteProcessMethods {
             int sqnc = 1;
             for (int i = 0; i < prices.length; i++) {
             	int rowIdx6 = listParam6.createRow();
-            	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+            	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
             	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
             	listParam6.setValue(rowIdx6, "LEG_NO", 0);
             	listParam6.setValue(rowIdx6, "EXEC_TP", "A");
@@ -262,7 +275,7 @@ public class QuoteProcessMethods {
             	ListParam listParam7= new ListParam(columns7);
             	
             	int rowIdx7 = listParam7.createRow();
-            	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+            	listParam7.setValue(rowIdx7, "GDS_ID", gdsID);
             	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
             	listParam7.setValue(rowIdx7, "LEG_NO", 0);
             	listParam7.setValue(rowIdx7, "BRR_TP", "KI");
@@ -282,7 +295,7 @@ public class QuoteProcessMethods {
             	ListParam listParam8 = new ListParam(columns8);
             	
             	int rowIdx8 = listParam8.createRow();
-            	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+            	listParam8.setValue(rowIdx8, "GDS_ID", gdsID);
             	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
             	listParam8.setValue(rowIdx8, "LEG_NO", 0);
             	listParam8.setValue(rowIdx8, "BRR_TP", "KI");
@@ -368,6 +381,16 @@ public class QuoteProcessMethods {
 	        
 	        String endDate = exerciseDates.get(exerciseDates.size() - 1).format(formatter);
 	        
+	        dao.sqlexe("s_selectOTCSEQCNTRID", false);
+	        ListParam CNTRIDParam = dao.getNowListParam();
+	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+	        
+	        dao.sqlexe("s_selectCNTRGDSID", false);
+	        ListParam CNTRGDSIDParam = dao.getNowListParam();
+	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];
+	        
+	        String cntrCode = "QUOTE" + cntrID.toString(); 
+	        
 	        // Logging or using the endDate
 	        log.debug(exerciseDates.toString());
 			//첫번째 테이블: OTC_GDS_MSTR
@@ -375,10 +398,10 @@ public class QuoteProcessMethods {
 			ListParam listParam1 = new ListParam(columns1);
 			
 			int rowIdx1 = listParam1.createRow();
-			listParam1.setValue(rowIdx1, "GDS_ID", productId);
+			listParam1.setValue(rowIdx1, "GDS_ID", gdsID);
 			listParam1.setValue(rowIdx1, "CNTR_HSTR_NO", 1);
 			listParam1.setValue(rowIdx1, "SEQ", 1);
-			listParam1.setValue(rowIdx1, "CNTR_ID", productId);
+			listParam1.setValue(rowIdx1, "CNTR_ID", cntrID);
 			listParam1.setValue(rowIdx1, "GDS_TYPE_TP", "STD");
 			listParam1.setValue(rowIdx1, "BUY_SELL_TP", "1");
 			
@@ -395,10 +418,10 @@ public class QuoteProcessMethods {
 			ListParam listParam2 = new ListParam(columns2);
 			
 			int rowIdx2 = listParam2.createRow();
-			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
+			listParam2.setValue(rowIdx2, "CNTR_ID", cntrID);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
             listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
-            listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
+            listParam2.setValue(rowIdx2, "CNTR_CODE", cntrCode);
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", kiBarrier != null ? "005" : "011");
             listParam2.setValue(rowIdx2, "DEAL_DT", effectiveDate);
@@ -421,7 +444,7 @@ public class QuoteProcessMethods {
             ListParam listParam3 = new ListParam(columns3);
             
             int rowIdx3 = listParam3.createRow();
-            listParam3.setValue(rowIdx3, "GDS_ID", productId);
+            listParam3.setValue(rowIdx3, "GDS_ID", gdsID);
             listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
             listParam3.setValue(rowIdx3, "LEG_NO", 0);
             
@@ -441,7 +464,7 @@ public class QuoteProcessMethods {
             for (String asset: underlyingAssets) {
             	if (asset != null) {
             		int rowIdx4 = listParam4.createRow();
-            		listParam4.setValue(rowIdx4, "CNTR_ID", productId);
+            		listParam4.setValue(rowIdx4, "CNTR_ID", cntrID);
             		listParam4.setValue(rowIdx4, "CNTR_HSTR_NO", 1);
             		listParam4.setValue(rowIdx4, "SEQ", seq++);
             		listParam4.setValue(rowIdx4, "UNAS_ID", asset);
@@ -462,7 +485,7 @@ public class QuoteProcessMethods {
             ListParam listParam5 = new ListParam(columns5);
             
             int rowIdx5 = listParam5.createRow();
-            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "GDS_ID", gdsID);
             listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
             listParam5.setValue(rowIdx5, "LEG_NO", 0);
             listParam5.setValue(rowIdx5, "EXEC_TP", "A");
@@ -489,7 +512,7 @@ public class QuoteProcessMethods {
             int sqnc = 1;
             for (int i = 0; i < mainPrices.size(); i++) { //Price(barrier)의 arraylist를 사용하기 때문에, length에서 size()로 바꾼다. length는 array의 길이 return. size()는 arrayList의 길이 return.
             	int rowIdx6 = listParam6.createRow();
-            	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+            	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
             	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
             	listParam6.setValue(rowIdx6, "LEG_NO", 0);
             	listParam6.setValue(rowIdx6, "EXEC_TP", "A");
@@ -517,7 +540,7 @@ public class QuoteProcessMethods {
             	ListParam listParam7= new ListParam(columns7);
             	
             	int rowIdx7 = listParam7.createRow();
-            	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+            	listParam7.setValue(rowIdx7, "GDS_ID", gdsID);
             	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
             	listParam7.setValue(rowIdx7, "LEG_NO", 0);
             	listParam7.setValue(rowIdx7, "BRR_TP", "KI");
@@ -537,7 +560,7 @@ public class QuoteProcessMethods {
             	ListParam listParam8 = new ListParam(columns8);
             	
             	int rowIdx8 = listParam8.createRow();
-            	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+            	listParam8.setValue(rowIdx8, "GDS_ID", gdsID);
             	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
             	listParam8.setValue(rowIdx8, "LEG_NO", 0);
             	listParam8.setValue(rowIdx8, "BRR_TP", "KI");
@@ -559,7 +582,7 @@ public class QuoteProcessMethods {
         	ListParam listParam9= new ListParam(columns9);
         	
         	int rowIdx9 = listParam9.createRow();
-        	listParam9.setValue(rowIdx9, "GDS_ID", productId);
+        	listParam9.setValue(rowIdx9, "GDS_ID", gdsID);
         	listParam9.setValue(rowIdx9, "CNTR_HSTR_NO", 1);
         	listParam9.setValue(rowIdx9, "LEG_NO", 0);
         	listParam9.setValue(rowIdx9, "BRR_TP", "LZ");
@@ -585,7 +608,7 @@ public class QuoteProcessMethods {
         	int sqnc2 = 1;
         	for (int i = 0; i < barrierPrices.size(); i++) {
         		int rowIdx10 = listParam10.createRow();
-	        	listParam10.setValue(rowIdx10, "GDS_ID", productId);
+	        	listParam10.setValue(rowIdx10, "GDS_ID", gdsID);
 	        	listParam10.setValue(rowIdx10, "CNTR_HSTR_NO", 1);
 	        	listParam10.setValue(rowIdx10, "LEG_NO", 0);
 	        	listParam10.setValue(rowIdx10, "BRR_TP", "LZ");
@@ -650,15 +673,26 @@ public class QuoteProcessMethods {
 
 	        // Adjust the datePlusTwoDays for weekends and holidays
 	        LocalDate adjustedDatePlusTwoDays = adjustForWeekendAndHolidays(datePlusTwoDays);
+	        
+	        dao.sqlexe("s_selectOTCSEQCNTRID", false);
+	        ListParam CNTRIDParam = dao.getNowListParam();
+	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+	        
+	        dao.sqlexe("s_selectCNTRGDSID", false);
+	        ListParam CNTRGDSIDParam = dao.getNowListParam();
+	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];
+	        
+	        String cntrCode = "QUOTE" + cntrID.toString(); 
+	        
 			//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 			ListParam listParam1 = new ListParam(columns1);
 			
 			int rowIdx1 = listParam1.createRow();
-			listParam1.setValue(rowIdx1, "GDS_ID", productId);
+			listParam1.setValue(rowIdx1, "GDS_ID", gdsID);
 			listParam1.setValue(rowIdx1, "CNTR_HSTR_NO", 1);
 			listParam1.setValue(rowIdx1, "SEQ", 1);
-			listParam1.setValue(rowIdx1, "CNTR_ID", productId);
+			listParam1.setValue(rowIdx1, "CNTR_ID", cntrID);
 			listParam1.setValue(rowIdx1, "GDS_TYPE_TP", "VKO"); //이거 VKO(Knock Out으로 수정)
 			listParam1.setValue(rowIdx1, "BUY_SELL_TP", "1");
 			
@@ -675,10 +709,10 @@ public class QuoteProcessMethods {
 			ListParam listParam2 = new ListParam(columns2);
 			
 			int rowIdx2 = listParam2.createRow();
-			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
+			listParam2.setValue(rowIdx2, "CNTR_ID", cntrID);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
             listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
-            listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
+            listParam2.setValue(rowIdx2, "CNTR_CODE", cntrCode);
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", "059"); //KnockOut 번호로 수정
             listParam2.setValue(rowIdx2, "DEAL_DT", effectiveDate);
@@ -702,7 +736,7 @@ public class QuoteProcessMethods {
             ListParam listParam3 = new ListParam(columns3);
             
             int rowIdx3 = listParam3.createRow();
-            listParam3.setValue(rowIdx3, "GDS_ID", productId);
+            listParam3.setValue(rowIdx3, "GDS_ID", gdsID);
             listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
             listParam3.setValue(rowIdx3, "LEG_NO", 0);
             
@@ -722,7 +756,7 @@ public class QuoteProcessMethods {
             for (String asset: underlyingAssets) {
             	if (asset != null) {
             		int rowIdx4 = listParam4.createRow();
-            		listParam4.setValue(rowIdx4, "CNTR_ID", productId);
+            		listParam4.setValue(rowIdx4, "CNTR_ID", cntrID);
             		listParam4.setValue(rowIdx4, "CNTR_HSTR_NO", 1);
             		listParam4.setValue(rowIdx4, "SEQ", seq++);
             		listParam4.setValue(rowIdx4, "UNAS_ID", asset);
@@ -745,7 +779,7 @@ public class QuoteProcessMethods {
             //Double callParticipationRateDouble = callParticipationRate != null ? callParticipationRate / 100.0 : null;
             
             int rowIdx5 = listParam5.createRow();
-            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "GDS_ID", gdsID);
             listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
             listParam5.setValue(rowIdx5, "LEG_NO", 0);
             listParam5.setValue(rowIdx5, "EXEC_TP", "V");
@@ -769,7 +803,7 @@ public class QuoteProcessMethods {
             //int sqnc = 1;
             //for (int i = 0; i < mainPrices.size(); i++) { //Price(barrier)의 arraylist를 사용하기 때문에, length에서 size()로 바꾼다. length는 array의 길이 return. size()는 arrayList의 길이 return.
         	int rowIdx6 = listParam6.createRow();
-        	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+        	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
         	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
         	listParam6.setValue(rowIdx6, "LEG_NO", 0);
         	listParam6.setValue(rowIdx6, "EXEC_TP", "V");
@@ -797,7 +831,7 @@ public class QuoteProcessMethods {
         	ListParam listParam7= new ListParam(columns7);
         	
         	int rowIdx7 = listParam7.createRow();
-        	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+        	listParam7.setValue(rowIdx7, "GDS_ID", gdsID);
         	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
         	listParam7.setValue(rowIdx7, "LEG_NO", 0);
         	listParam7.setValue(rowIdx7, "BRR_TP", "KO");
@@ -818,7 +852,7 @@ public class QuoteProcessMethods {
         	ListParam listParam8 = new ListParam(columns8);
         	
         	int rowIdx8 = listParam8.createRow();
-        	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+        	listParam8.setValue(rowIdx8, "GDS_ID", gdsID);
         	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
         	listParam8.setValue(rowIdx8, "LEG_NO", 0);
         	listParam8.setValue(rowIdx8, "BRR_TP", "KO");
@@ -885,15 +919,25 @@ public class QuoteProcessMethods {
 	        // Adjust the datePlusTwoDays for weekends and holidays
 	        LocalDate adjustedDatePlusTwoDays = adjustForWeekendAndHolidays(datePlusTwoDays);
 			
+	        dao.sqlexe("s_selectOTCSEQCNTRID", false);
+	        ListParam CNTRIDParam = dao.getNowListParam();
+	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+	        
+	        dao.sqlexe("s_selectCNTRGDSID", false);
+	        ListParam CNTRGDSIDParam = dao.getNowListParam();
+	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];
+	        
+	        String cntrCode = "QUOTE" + cntrID.toString(); 
+	        
 			//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 			ListParam listParam1 = new ListParam(columns1);
 			
 			int rowIdx1 = listParam1.createRow();
-			listParam1.setValue(rowIdx1, "GDS_ID", productId);
+			listParam1.setValue(rowIdx1, "GDS_ID", gdsID);
 			listParam1.setValue(rowIdx1, "CNTR_HSTR_NO", 1);
 			listParam1.setValue(rowIdx1, "SEQ", 1);
-			listParam1.setValue(rowIdx1, "CNTR_ID", productId);
+			listParam1.setValue(rowIdx1, "CNTR_ID", cntrID);
 			listParam1.setValue(rowIdx1, "GDS_TYPE_TP", "WAY"); //이거 WAY(TwoWay Knock Out으로 수정)
 			listParam1.setValue(rowIdx1, "BUY_SELL_TP", "1");
 			
@@ -910,10 +954,10 @@ public class QuoteProcessMethods {
 			ListParam listParam2 = new ListParam(columns2);
 			
 			int rowIdx2 = listParam2.createRow();
-			listParam2.setValue(rowIdx2, "CNTR_ID", productId);
+			listParam2.setValue(rowIdx2, "CNTR_ID", cntrID);
             listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
             listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
-            listParam2.setValue(rowIdx2, "CNTR_CODE", String.valueOf(productId));
+            listParam2.setValue(rowIdx2, "CNTR_CODE", cntrCode);
             listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
             listParam2.setValue(rowIdx2, "GDS_TMPL_TP", "025"); //Twoway KnockOut 번호로 수정
             listParam2.setValue(rowIdx2, "DEAL_DT", effectiveDate);
@@ -937,7 +981,7 @@ public class QuoteProcessMethods {
             ListParam listParam3 = new ListParam(columns3);
             
             int rowIdx3 = listParam3.createRow();
-            listParam3.setValue(rowIdx3, "GDS_ID", productId);
+            listParam3.setValue(rowIdx3, "GDS_ID", gdsID);
             listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
             listParam3.setValue(rowIdx3, "LEG_NO", 0);
             
@@ -957,7 +1001,7 @@ public class QuoteProcessMethods {
             for (String asset: underlyingAssets) {
             	if (asset != null) {
             		int rowIdx4 = listParam4.createRow();
-            		listParam4.setValue(rowIdx4, "CNTR_ID", productId);
+            		listParam4.setValue(rowIdx4, "CNTR_ID", cntrID);
             		listParam4.setValue(rowIdx4, "CNTR_HSTR_NO", 1);
             		listParam4.setValue(rowIdx4, "SEQ", seq++);
             		listParam4.setValue(rowIdx4, "UNAS_ID", asset);
@@ -981,7 +1025,7 @@ public class QuoteProcessMethods {
             //Double callParticipationRateDouble = callParticipationRate != null ? callParticipationRate / 100.0 : null;
             
             int rowIdx5 = listParam5.createRow();
-            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "GDS_ID", gdsID);
             listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
             listParam5.setValue(rowIdx5, "LEG_NO", 0);
             listParam5.setValue(rowIdx5, "EXEC_TP", "V");
@@ -992,7 +1036,7 @@ public class QuoteProcessMethods {
             listParam5.setValue(rowIdx5, "UP_PART_RT", callParticipationRate);
             
             rowIdx5 = listParam5.createRow();
-            listParam5.setValue(rowIdx5, "GDS_ID", productId);
+            listParam5.setValue(rowIdx5, "GDS_ID", gdsID);
             listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
             listParam5.setValue(rowIdx5, "LEG_NO", 0);
             listParam5.setValue(rowIdx5, "EXEC_TP", "V");
@@ -1016,7 +1060,7 @@ public class QuoteProcessMethods {
             //int sqnc = 1;
             //for (int i = 0; i < mainPrices.size(); i++) { //Price(barrier)의 arraylist를 사용하기 때문에, length에서 size()로 바꾼다. length는 array의 길이 return. size()는 arrayList의 길이 return.
         	int rowIdx6 = listParam6.createRow();
-        	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+        	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
         	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
         	listParam6.setValue(rowIdx6, "LEG_NO", 0);
         	listParam6.setValue(rowIdx6, "EXEC_TP", "V");
@@ -1033,7 +1077,7 @@ public class QuoteProcessMethods {
         	listParam6.setValue(rowIdx6, "SETL_DT", adjustedEndDatePlusTwoDays.format(formatter));
             //}
         	rowIdx6 = listParam6.createRow();
-        	listParam6.setValue(rowIdx6, "GDS_ID", productId);
+        	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
         	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
         	listParam6.setValue(rowIdx6, "LEG_NO", 0);
         	listParam6.setValue(rowIdx6, "EXEC_TP", "V");
@@ -1059,7 +1103,7 @@ public class QuoteProcessMethods {
         	ListParam listParam7= new ListParam(columns7);
         	
         	int rowIdx7 = listParam7.createRow();
-        	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+        	listParam7.setValue(rowIdx7, "GDS_ID", gdsID);
         	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
         	listParam7.setValue(rowIdx7, "LEG_NO", 0);
         	listParam7.setValue(rowIdx7, "BRR_TP", "KO");
@@ -1069,7 +1113,7 @@ public class QuoteProcessMethods {
         	listParam7.setValue(rowIdx7, "OBRA_PRIC_TYPE_TP", "CP");
         	
         	rowIdx7 = listParam7.createRow();
-        	listParam7.setValue(rowIdx7, "GDS_ID", productId);
+        	listParam7.setValue(rowIdx7, "GDS_ID", gdsID);
         	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
         	listParam7.setValue(rowIdx7, "LEG_NO", 0);
         	listParam7.setValue(rowIdx7, "BRR_TP", "KO");
@@ -1090,7 +1134,7 @@ public class QuoteProcessMethods {
         	ListParam listParam8 = new ListParam(columns8);
         	
         	int rowIdx8 = listParam8.createRow();
-        	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+        	listParam8.setValue(rowIdx8, "GDS_ID", gdsID);
         	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
         	listParam8.setValue(rowIdx8, "LEG_NO", 0);
         	listParam8.setValue(rowIdx8, "BRR_TP", "KO");
@@ -1101,7 +1145,7 @@ public class QuoteProcessMethods {
         	listParam8.setValue(rowIdx8, "BRR_RT", koBarrierUpSide/100.0);
         	
         	rowIdx8 = listParam8.createRow();
-        	listParam8.setValue(rowIdx8, "GDS_ID", productId);
+        	listParam8.setValue(rowIdx8, "GDS_ID", gdsID);
         	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
         	listParam8.setValue(rowIdx8, "LEG_NO", 0);
         	listParam8.setValue(rowIdx8, "BRR_TP", "KO");
