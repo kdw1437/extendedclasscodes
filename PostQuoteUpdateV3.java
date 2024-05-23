@@ -58,6 +58,9 @@ public class PostQuoteUpdateV3 {
 					case "TwoWayKnockOut":
 						QuoteProcessMethods.performTwoWayKnockOutInsert(dao, jsonObject);
 						break;
+					case "MonthlyCoupon":
+						QuoteProcessMethods.performMonthlyCouponInsert(dao, jsonObject);
+						break;
 					default:
 						log.debug("Unhandled product type: " + productType);
 						break;

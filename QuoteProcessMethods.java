@@ -1263,6 +1263,7 @@ public class QuoteProcessMethods {
 			String underlyingAsset2 = jsonObject.optString("underlyingAsset2", null);
 			String underlyingAsset3 = jsonObject.optString("underlyingAsset3", null);
 			String exercisePrices = jsonObject.optString("exercisePrices", null);
+			//monthlyCoupon에는 monthlyPaymentBarrier가 추가된다.
 			Double monthlyPaymentBarrier = getNullableDouble(jsonObject, "monthlyPaymentBarrier");
 			Double coupon = getNullableDouble(jsonObject, "coupon");
 			Double lizardCoupon = getNullableDouble(jsonObject, "lizardCoupon");
@@ -1282,41 +1283,34 @@ public class QuoteProcessMethods {
 			//4. exerciseDates의 마지막 element를 endDate변수에 할당한다.
 			
 			
-			String[] prices = exercisePrices.split("-");
+	        String[] prices = exercisePrices.split("-");
 	        List<LocalDate> exerciseDates = new ArrayList<>();
-
+	        List<LocalDate> adjustedExerciseDates = new ArrayList<>();
+	        
 	        LocalDate exerciseDate = effectiveDateParsed;  // Start from the effective date
-	        for (int i = 0; i < prices.length; i++) {
+	        //이거 날짜 세아리는 거 과거 방식 코드
+	        /*for (int i = 0; i < prices.length; i++) {
 	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // Add the cycle to the previous exercise date
 	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // Adjust for weekends and holidays
 	            exerciseDates.add(exerciseDate);
+	        }*/ 
+	        
+	        //원 exerciseDate
+	        for (String price : prices) {
+	        	exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);
+	        	exerciseDates.add(exerciseDate);
 	        }
 	        
-	        String endDate = exerciseDates.get(exerciseDates.size() - 1).format(formatter);
-	        
-	        //monthlyCoupon에만 추가되는 프로토콜 (이거 수정해야 됨)
-	        List<LocalDate> monthlyCouponDates = new ArrayList<>();
-	        
-	        List<LocalDate> monthlySettleDates = new ArrayList<>();
-	        
-	        LocalDate monthlySettleDate;
-	        
-	        LocalDate monthlyCouponDate = effectiveDateParsed;
-	        
-	        for (int i = 0; i < prices.length*6 ; i++) {
-	        	monthlyCouponDate = monthlyCouponDate.plusMonths(1);
-	        	monthlyCouponDate = adjustForWeekendAndHolidays(monthlyCouponDate);
-	        	monthlyCouponDates.add(monthlyCouponDate);
-	        	monthlySettleDate = monthlyCouponDate.plusDays(2);
-	        	monthlySettleDate = adjustForWeekendAndHolidays(monthlySettleDate);
-	        	monthlySettleDates.add(monthlySettleDate);
+	        //휴일 조정된 exerciseDate
+	        for (LocalDate date : exerciseDates) {
+	            adjustedExerciseDates.add(adjustForWeekend(date));
 	        }
 	        
-	        
+	        String endDate = adjustedExerciseDates.get(adjustedExerciseDates.size() - 1).format(formatter);
 	        
 	        // Logging or using the endDate
 	        log.debug(exerciseDates.toString());
-			
+	        
 	        /*dao.sqlexe("s_selectOTCSEQCNTRID", false);
 	        ListParam CNTRIDParam = dao.getNowListParam();
 	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
@@ -1382,10 +1376,10 @@ public class QuoteProcessMethods {
             
             dao.sqlexe("s_insertOTCCNTRMSTR", false);
             */
-	        //두번째 테이블: OTC_CNTR_MSTR
+	        //두번째 테이블: OTC_CNTR_MSTR, GDS_TMPL_TP 수정 (Monthly Cpn)
 	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
 	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
-	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "001" : "007"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
+	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "003" : "009"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
 	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
 	        log.debug("insertOTCCNTRMSTR");
             
@@ -1442,11 +1436,13 @@ public class QuoteProcessMethods {
             listParam5.setValue(rowIdx5, "EXEC_GDS_NO", "1");
             listParam5.setValue(rowIdx5, "SRC_COND_TP", "W");
             listParam5.setValue(rowIdx5, "COND_RANGE_TP", "IO");
-            listParam5.setValue(rowIdx5, "YY_CPN_RT", coupon/100);
+            //YY_CPN_RT 월지급 쿠폰인 경우 0으로 수정
+            listParam5.setValue(rowIdx5, "YY_CPN_RT", 0);
             
             double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * prices.length / 12.0) : 0;
-            
-            listParam5.setValue(rowIdx5, "DUMY_CPN_RT", dummyCouponRate);
+            //dummyCouponRate도 0으로 수정
+            //listParam5.setValue(rowIdx5, "DUMY_CPN_RT", dummyCouponRate);
+            listParam5.setValue(rowIdx5, "DUMY_CPN_RT", 0);
             listParam5.setValue(rowIdx5, "LOSS_PART_RT", lossParticipationRate);
             
             dao.setValue("insertOTCEXECMSTR", listParam5);
@@ -1470,13 +1466,16 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", exerciseDates.get(i).format(formatter));
             	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
-            	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
-            	LocalDate initialDate = exerciseDates.get(i);
-            	LocalDate adjustedDate = initialDate.plusDays(2);
-            	adjustedDate = adjustForWeekendAndHolidays(adjustedDate);
+            	//월지급 쿠폰의 CPN_RT의 경우: 0으로 매핑
+            	listParam6.setValue(rowIdx6, "CPN_RT", 0);
+            	//listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
+            	LocalDate initialDate = adjustedExerciseDates.get(i);
+            	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
+            	adjustedDate = adjustForWeekend(adjustedDate);
             	
             	listParam6.setValue(rowIdx6, "SETL_DT", adjustedDate.format(formatter));
-            }
+            	
+	        }
             
             dao.setValue("insertOTCEXECSCHDPRTC", listParam6);
             
@@ -1529,6 +1528,61 @@ public class QuoteProcessMethods {
             	//No operation(NOP)
             }
             
+            //이거 MonthlyCoupon 매핑 시작 (YY_CPN_RT 추가)
+            String[] columns9 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "OBRA_PRIC_TYPE_TP"};
+            ListParam listParam9= new ListParam(columns9);
+            
+            int rowIdx9 = listParam9.createRow();
+        	listParam9.setValue(rowIdx9, "GDS_ID", gdsID);
+        	listParam9.setValue(rowIdx9, "CNTR_HSTR_NO", 1);
+        	listParam9.setValue(rowIdx9, "LEG_NO", 0);
+        	//이거 수정됨. (MC로)
+        	listParam9.setValue(rowIdx9, "BRR_TP", "MC");
+        	listParam9.setValue(rowIdx9, "BRR_GDS_NO","1");
+        	listParam9.setValue(rowIdx9, "SRC_COND_TP", "W");
+        	//이거 수정됨. (IO로)
+        	listParam9.setValue(rowIdx9, "COND_RANGE_TP", "IO");
+        	//이거 YY_CPN_RT가 추가됨.
+        	listParam9.setValue(rowIdx9, "YY_CPN_RT", monthlyPaymentBarrier/100.0);
+        	listParam9.setValue(rowIdx9, "OBRA_PRIC_TYPE_TP", "CP");
+        	
+        	//이거 sqlquery YY_CPN_RT에 대해 업데이트 된 것 추가해야 됨.
+        	dao.setValue("insertOTCBRRMSTR_M", listParam9);
+        	
+        	dao.sqlexe("s_insertOTCBRRMSTR_M", false);
+        	
+        	log.debug("insertOTCBRRMSTR_M done");
+        	
+        	//OTC_BRR_SCHD_PRTC (for monthly coupon) CPN_RT, SETL_DT 추가
+        	String[] columns10 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT",
+        			"OBRA_END_DT", "BRR_RT", "CPN_RT", "SETL_DT"};
+        	ListParam listParam10= new ListParam(columns10);
+        	LocalDate monthlyCouponDate = effectiveDateParsed;
+        	int sqnc2 = 1;
+        	for (int i = 0; i < prices.length*earlyRedempCycle; i++ ) {
+        		int rowIdx10 = listParam10.createRow();
+        		
+        		listParam10.setValue(rowIdx10, "GDS_ID", gdsID);
+            	listParam10.setValue(rowIdx10, "CNTR_HSTR_NO", 1);
+            	listParam10.setValue(rowIdx10, "LEG_NO", 0);
+            	//이거 MC(Monthly Coupon으로 조정 들어감)
+            	listParam10.setValue(rowIdx10, "BRR_TP", "MC");
+            	listParam10.setValue(rowIdx10, "BRR_GDS_NO", "1");
+            	listParam10.setValue(rowIdx10, "SQNC", sqnc2++);
+            	listParam10.setValue(rowIdx10, "OBRA_STRT_DT", monthlyCouponDate.format(formatter));
+            	monthlyCouponDate = monthlyCouponDate.plusMonths(1);
+            	listParam10.setValue(rowIdx10, "OBRA_END_DT", monthlyCouponDate.format(formatter));
+            	listParam10.setValue(rowIdx10, "BRR_RT", monthlyPaymentBarrier/100.0);
+            	listParam10.setValue(rowIdx10, "CPN_RT", (coupon/100.0)/12.0);
+            	listParam10.setValue(rowIdx10, "SETL_DT", (monthlyCouponDate.plusDays(settleDateOffset)).format(formatter));
+        	}
+        	
+        	dao.setValue("insertOTCBRRSCHDPRTC_M", listParam10);
+        	
+        	dao.sqlexe("s_insertOTCBRRSCHDPRTC_M", false);
+        	
+        	log.debug("insertOTCBRRSCHDPRTC_M done");
+        	
             dao.commit();
             log.debug("Transaction committed successfully.");
             
