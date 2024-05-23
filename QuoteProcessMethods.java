@@ -155,7 +155,7 @@ public class QuoteProcessMethods {
 	        	exerciseDates.add(exerciseDate);
 	        }
 	        
-	        //조정된 exerciseDate
+	        //휴일 조정된 exerciseDate
 	        for (LocalDate date : exerciseDates) {
 	            adjustedExerciseDates.add(adjustForWeekend(date));
 	        }
@@ -320,7 +320,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
             	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = adjustedExerciseDates.get(i);
-            	LocalDate adjustedDate = initialDate.plusDays(2);
+            	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
             	adjustedDate = adjustForWeekend(adjustedDate);
             	
             	listParam6.setValue(rowIdx6, "SETL_DT", adjustedDate.format(formatter));
@@ -609,7 +609,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(mainPrices.get(i))); //[i] 대신 get메소드 이용, [i]는 array의 객체 return, get(i)는 arrayList의 i번째 element return
             	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = adjustedExerciseDates.get(i);
-            	LocalDate adjustedDate = initialDate.plusDays(2);
+            	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
             	adjustedDate = adjustForWeekend(adjustedDate);
             	
             	listParam6.setValue(rowIdx6, "SETL_DT", adjustedDate.format(formatter));
@@ -749,18 +749,19 @@ public class QuoteProcessMethods {
 			Integer koBarrierUpSide = getNullableInteger(jsonObject, "koBarrierUpSide");
 			Integer dummyCouponUpSide = getNullableInteger(jsonObject, "dummyCouponUpSide");
 			
-	        // Parsing the effective date
+	        // effectiveDate 파싱
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 	        LocalDate effectiveDateParsed = LocalDate.parse(effectiveDate, formatter);
 	        
-	        // Calculating the end date by adding early redemption cycle months and adjusting for weekends and holidays
+	        // 조기 상환 주기 개월 수를 더해줌으로써 end date를 계산하고, 주말 조정을 해준다.
 	        LocalDate endDate = adjustForWeekend(effectiveDateParsed.plusMonths(earlyRedempCycle));
 	        
 	        LocalDate datePlusTwoDays = endDate.plusDays(2);
 
-	        // Adjust the datePlusTwoDays for weekends and holidays
+	        // datePlusTwoDays를 주말 조정을 해준다.
 	        LocalDate adjustedDatePlusTwoDays = adjustForWeekend(datePlusTwoDays);
 	        
+	        //cntrID, gdsID, cntrCode값을 부여 받는다.
 	        Map<String, BigDecimal> ids = fetchIDs(dao);
 	        BigDecimal cntrID = ids.get("cntrID");
 	        BigDecimal gdsID = ids.get("gdsID");
