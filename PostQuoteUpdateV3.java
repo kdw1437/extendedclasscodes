@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,32 +40,38 @@ public class PostQuoteUpdateV3 {
 		
 		try {
 			JSONArray jsonArray = new JSONArray(jsonStr);
+			JSONArray responseArray = new JSONArray();
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonObject = jsonArray.getJSONObject(i);
 				String productType = jsonObject.getString("productType");
-				
+				String cntrCode = null;
 				
 				try {
 				switch (productType) {
 					case "StepDown":
-						QuoteProcessMethods.performStepDownInsert(dao, jsonObject);
+						cntrCode = QuoteProcessMethods.performStepDownInsert(dao, jsonObject);
 						break;	
 					case "Lizard": 
-						QuoteProcessMethods.performLizardInsert(dao, jsonObject);
+						cntrCode = QuoteProcessMethods.performLizardInsert(dao, jsonObject);
 						break;
 					case "KnockOut": //이거 query문 추가가 필요하다. sql query easyFrame서버에서 등록하고 확장클래스에 등록해주면 된다.
-						QuoteProcessMethods.performKnockOutInsert(dao, jsonObject);
+						cntrCode = QuoteProcessMethods.performKnockOutInsert(dao, jsonObject);
 						break;
 					case "TwoWayKnockOut":
-						QuoteProcessMethods.performTwoWayKnockOutInsert(dao, jsonObject);
+						cntrCode = QuoteProcessMethods.performTwoWayKnockOutInsert(dao, jsonObject);
 						break;
 					case "MonthlyCoupon":
-						QuoteProcessMethods.performMonthlyCouponInsert(dao, jsonObject);
+						cntrCode = QuoteProcessMethods.performMonthlyCouponInsert(dao, jsonObject);
 						break;
 					default:
 						log.debug("Unhandled product type: " + productType);
 						break;
-				}	
+				}
+				 if (cntrCode != null) {
+                     JSONObject responseObject = new JSONObject();
+                     responseObject.put("cntrCode", cntrCode);
+                     responseArray.put(responseObject);
+                 }
 				} catch(Exception e) {
 							log.error("Error StepDown" + i, e);
 							dao.setError("Error :" + e.getMessage() );
@@ -73,7 +80,22 @@ public class PostQuoteUpdateV3 {
 						}
 						
 				}
-			
+				
+				String finalJson = responseArray.toString();
+				dao.setMessage(finalJson);
+				/*JSONObject finalJson = new JSONObject();
+				finalJson.put("cntrCodeArray", responseArray);*/
+				/*String responseString = finalJson.toString();
+
+	            // Write the response back to the client
+	            dao.getResponse().setCharacterEncoding("UTF-8");
+	            dao.getResponse().setContentType("application/json");
+	            dao.getResponse().getWriter().write(responseString);
+	            
+	            log.debug(responseString);*/
+				/*Map<String, Object> hashMap = finalJson.toMap();
+	            dao.setValue("response", hashMap);
+	            log.info("HashMap contents: " + hashMap.toString());*/
 		} catch (Exception e) {
 			log.error("Error parsing JSON or processing data", e);
 			dao.setError("Error :" + e.getMessage());

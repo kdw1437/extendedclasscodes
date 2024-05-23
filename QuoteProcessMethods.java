@@ -107,7 +107,8 @@ public class QuoteProcessMethods {
     }
 
     
-	public static void performStepDownInsert(DaoService dao, JSONObject jsonObject) {
+	public static String performStepDownInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
 		try {
 			Integer productId = getNullableInteger(jsonObject, "productId");
 			String effectiveDate = jsonObject.optString("effectiveDate", null);
@@ -176,7 +177,7 @@ public class QuoteProcessMethods {
 	        BigDecimal cntrID = ids.get("cntrID");
 	        BigDecimal gdsID = ids.get("gdsID");
 	        
-	        String cntrCode = "QUOTE" + cntrID.toString(); 
+	        cntrCode = "QUOTE" + cntrID.toString(); 
 	        
 	        
 	        /*
@@ -386,10 +387,12 @@ public class QuoteProcessMethods {
 			e.printStackTrace();
 			log.error("Error performing database operation, rollback initiated.", e);
 		}
+		return cntrCode;
 	}
 	
 	
-	public static void performLizardInsert(DaoService dao, JSONObject jsonObject) {
+	public static String performLizardInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
 		try {
 			Integer productId = getNullableInteger(jsonObject, "productId");
 			String effectiveDate = jsonObject.optString("effectiveDate", null);
@@ -476,7 +479,7 @@ public class QuoteProcessMethods {
 	        BigDecimal cntrID = ids.get("cntrID");
 	        BigDecimal gdsID = ids.get("gdsID");
 	        
-	        String cntrCode = "QUOTE" + cntrID.toString();
+	        cntrCode = "QUOTE" + cntrID.toString();
 	        
 	        // Logging or using the endDate
 	        log.debug(exerciseDates.toString());
@@ -723,10 +726,12 @@ public class QuoteProcessMethods {
  			e.printStackTrace();
  			log.error("Error performing database operation, rollback initiated.", e);
 		}
+		return cntrCode;
 	}
 	//KnockOut option insert param construction
 	//5번째 테이블, 6번째 테이블 query만 수정해주면 된다.
-	public static void performKnockOutInsert(DaoService dao, JSONObject jsonObject) {
+	public static String performKnockOutInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
 		try {
 			Integer productId = getNullableInteger(jsonObject, "productId");
 			String effectiveDate = jsonObject.optString("effectiveDate", null);
@@ -766,7 +771,7 @@ public class QuoteProcessMethods {
 	        BigDecimal cntrID = ids.get("cntrID");
 	        BigDecimal gdsID = ids.get("gdsID");
 	        
-	        String cntrCode = "QUOTE" + cntrID.toString();
+	        cntrCode = "QUOTE" + cntrID.toString();
 	        
 			//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
@@ -963,9 +968,11 @@ public class QuoteProcessMethods {
  			e.printStackTrace();
  			log.error("Error performing database operation, rollback initiated.", e);
 		}
+		return cntrCode;
 	}
 	//4번까지 작성. 5번부터 작성해 주어야 한다.
-	public static void performTwoWayKnockOutInsert(DaoService dao, JSONObject jsonObject) {
+	public static String performTwoWayKnockOutInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
 		try {
 			Integer productId = getNullableInteger(jsonObject, "productId");
 			String effectiveDate = jsonObject.optString("effectiveDate", null);
@@ -1007,7 +1014,7 @@ public class QuoteProcessMethods {
 	        BigDecimal cntrID = ids.get("cntrID");
 	        BigDecimal gdsID = ids.get("gdsID");
 	        
-	        String cntrCode = "QUOTE" + cntrID.toString();
+	        cntrCode = "QUOTE" + cntrID.toString();
 	        
 			//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
@@ -1249,9 +1256,11 @@ public class QuoteProcessMethods {
 			e.printStackTrace();
 			log.error("Error performing database operation, rollback initiated.", e);
 		}
+		return cntrCode;
 	}
 	//MonthlyCoupon 상품을 처리해준다.
-	public static void performMonthlyCouponInsert(DaoService dao, JSONObject jsonObject) {
+	public static String performMonthlyCouponInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
 		try {
 			Integer productId = getNullableInteger(jsonObject, "productId");
 			String effectiveDate = jsonObject.optString("effectiveDate", null);
@@ -1322,7 +1331,7 @@ public class QuoteProcessMethods {
 	        BigDecimal cntrID = ids.get("cntrID");
 	        BigDecimal gdsID = ids.get("gdsID");
 	        
-	        String cntrCode = "QUOTE" + cntrID.toString(); 
+	        cntrCode = "QUOTE" + cntrID.toString(); 
 	        
 	        
 	        /*
@@ -1592,5 +1601,6 @@ public class QuoteProcessMethods {
 			e.printStackTrace();
 			log.error("Error performing database operation, rollback initiated.", e);
 		}
+		return cntrCode;
 	}
 }
