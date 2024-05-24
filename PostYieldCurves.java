@@ -50,10 +50,10 @@ public class PostYieldCurves {
 	            }
 	        }
 	        log.info(listParam.toString());
-	        // Set the converted ListParam in the DaoService object
+	        // 변환된 ListParam을 DaoService 객체에 세팅
 	        dao.setValue("insertYieldCurvesTp", listParam);
 	       
-	        // Attempt to execute the SQL statement
+	        //  SQL statement를 실행
 	        
 	            dao.sqlexe("s_insertYieldCurves2", false);
         } catch (IllegalArgumentException e) {

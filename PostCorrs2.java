@@ -26,16 +26,16 @@ public class PostCorrs2 {
         
         try {
         	
-                // Step 1: Validation
+                // 1 단계: Validation
                 if (dataSetId == null || dataSetId.trim().isEmpty() || baseDt == null || baseDt.trim().isEmpty()|| matrixId == null || matrixId.trim().isEmpty() ||
                 		jsonStr == null || jsonStr.trim().isEmpty()) {
                     throw new IllegalArgumentException("Missing required parameters");
                 }
 
-                // Step 2: Parse JSON string to a JSONArray
+                // 2 단계: JSON string을 JSONArray로 파싱
                 JSONArray dataArray = new JSONArray(jsonStr);
 
-                // Step 3: Create ListParam object and populate it with data
+                // Step 3: ListParam 객체를 만들고, data로 채운다.
                 ListParam listParam = new ListParam(new String[]{"BASE_DT", "DATA_SET_ID", "DATA_ID", "CRLT_CFCN_MATX_ID", "TH01_DATA_ID", "TH02_DATA_ID", "CRLT_CFCN"});
 
                 for (int i = 0; i < dataArray.length(); i++) {
@@ -54,7 +54,7 @@ public class PostCorrs2 {
                     listParam.setValue(listParam.rowSize() - 1, "CRLT_CFCN", corr);
                 }
 
-                // Step 4: Database operation - perform the operation only once
+                // Step 4: Database에 ListParam객체 데이터 넣기 - operation을 한번 수행해서 모든 listParam객체를 집어 넣는다.
                 dao.setSqlParamAddValue("InsertCorrsTp", listParam);
                 dao.sqlexe("s_insertCorrs", true);
         } catch (Exception e) {

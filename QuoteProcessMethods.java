@@ -142,11 +142,11 @@ public class QuoteProcessMethods {
 	        List<LocalDate> exerciseDates = new ArrayList<>();
 	        List<LocalDate> adjustedExerciseDates = new ArrayList<>();
 	        
-	        LocalDate exerciseDate = effectiveDateParsed;  // Start from the effective date
+	        LocalDate exerciseDate = effectiveDateParsed;  // effective date로 부터 시작한다.
 	        //이거 날짜 세아리는 거 과거 방식 코드
 	        /*for (int i = 0; i < prices.length; i++) {
-	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // Add the cycle to the previous exercise date
-	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // Adjust for weekends and holidays
+	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // 이전 exercise date에 cycle을 추가한다.
+	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // 주말과 휴일에 대해 조정한다.
 	            exerciseDates.add(exerciseDate);
 	        }*/ 
 	        
@@ -163,7 +163,7 @@ public class QuoteProcessMethods {
 	        
 	        String endDate = adjustedExerciseDates.get(adjustedExerciseDates.size() - 1).format(formatter);
 	        
-	        // Logging or using the endDate
+	        // endDate 사용하거나 로깅한다.
 	        log.debug(exerciseDates.toString());
 			
 	        /*dao.sqlexe("s_selectOTCSEQCNTRID", false);
@@ -439,11 +439,11 @@ public class QuoteProcessMethods {
 	        List<LocalDate> exerciseDates = new ArrayList<>();
 	        List<LocalDate> adjustedExerciseDates = new ArrayList<>();
 	        
-	        LocalDate exerciseDate = effectiveDateParsed;  // Start from the effective date
+	        LocalDate exerciseDate = effectiveDateParsed;  // effective date로 부터 시작
 	        //이거 날짜 세아리는 거 과거 방식 코드
 	        /*for (int i = 0; i < prices.length; i++) {
-	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // Add the cycle to the previous exercise date
-	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // Adjust for weekends and holidays
+	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // 이전 exercise date에 cycle을 추가
+	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // 주말 휴일 조정
 	            exerciseDates.add(exerciseDate);
 	        }*/ 
 	        
@@ -460,7 +460,7 @@ public class QuoteProcessMethods {
 	        
 	        String endDate = adjustedExerciseDates.get(adjustedExerciseDates.size() - 1).format(formatter);
 	        
-	        // Logging or using the endDate
+	        // endDate 사용하고 로깅
 	        log.debug(adjustedExerciseDates.toString());
 	        	        
 	        /*List<LocalDate> exerciseDates = new ArrayList<>();
@@ -481,7 +481,7 @@ public class QuoteProcessMethods {
 	        
 	        cntrCode = "QUOTE" + cntrID.toString();
 	        
-	        // Logging or using the endDate
+	        // endDate를 사용하고 로깅
 	        log.debug(exerciseDates.toString());
 			//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
@@ -692,7 +692,7 @@ public class QuoteProcessMethods {
         			"OBRA_END_DT", "BRR_RT", "CPN_RT"};
         	ListParam listParam10 = new ListParam(columns10);
         	
-        	// Formatter for the new format
+        	// 새 format을 위한 Formatter
         	DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyyMMdd");
         	
         	int sqnc2 = 1;
@@ -998,16 +998,16 @@ public class QuoteProcessMethods {
 			Integer putParticipationRate = getNullableInteger(jsonObject, "putParticipationRate");
 			Integer koBarrierDownSide = getNullableInteger(jsonObject, "koBarrierDownSide");
 			Integer dummyCouponDownSide = getNullableInteger(jsonObject, "dummyCouponDownSide");
-	        // Parsing the effective date
+	        // effective date 파싱
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 	        LocalDate effectiveDateParsed = LocalDate.parse(effectiveDate, formatter);
 	        
-	        // Calculating the end date by adding early redemption cycle months and adjusting for weekends and holidays
+	        // 조기 상환 주기를 월 단위로 더하고 주말과 공휴일을 조정하여 종료 날짜 계산
 	        LocalDate endDate = adjustForWeekend(effectiveDateParsed.plusMonths(earlyRedempCycle));
 	        
 	        LocalDate datePlusTwoDays = endDate.plusDays(2);
 
-	        // Adjust the datePlusTwoDays for weekends and holidays
+	        // datePlusTwoDays를 주말과 공휴일에 맞춰 조정
 	        LocalDate adjustedDatePlusTwoDays = adjustForWeekend(datePlusTwoDays);
 			
 	        Map<String, BigDecimal> ids = fetchIDs(dao);
@@ -1317,7 +1317,7 @@ public class QuoteProcessMethods {
 	        
 	        String endDate = adjustedExerciseDates.get(adjustedExerciseDates.size() - 1).format(formatter);
 	        
-	        // Logging or using the endDate
+	        // endDate를 사용하고 로깅한다.
 	        log.debug(exerciseDates.toString());
 	        
 	        /*dao.sqlexe("s_selectOTCSEQCNTRID", false);

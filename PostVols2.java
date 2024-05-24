@@ -55,17 +55,17 @@ public class PostVols2 {
                         chunkParam.setValue(rowIdx, "SWAP_EXPR_VAL", volFactor);
                     }
 
-                    // Process chunk if size limit is reached
+                    // 크기 제한에 도달하면 chunk 처리
                     if (chunkParam.rowSize() >= CHUNK_SIZE) {
                         log.debug("Processing chunk: " + (i / CHUNK_SIZE + 1));
                         dao.setValue("insertTermVolsTp", chunkParam);
                         dao.sqlexe("s_insertTermVols", false);
-                        chunkParam = new ListParam(columns); // Reset for next chunk
+                        chunkParam = new ListParam(columns); // 다음 chunk를 위해 초기화
                     }
                 }
             }
 
-            // Process any remaining data in the last chunk
+            // 마지막 chunk에 남아 있는 데이터를 처리
             if (chunkParam.rowSize() > 0) {
                 log.debug("Processing final chunk");
                 dao.setValue("insertTermVolsTp", chunkParam);

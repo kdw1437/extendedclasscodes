@@ -98,7 +98,7 @@ public class ProcessVols {
                         }
                     }
 
-                    // If volCurve with the same volFactor doesn't exist, add a new one
+                    // 동일한 volFactor를 가진 volCurve가 존재하지 않으면, 새로운 volCurve 추가
                     if (!volCurveExists) {
                         existingVolCurvesArray.put(volCurveObject);
                     }

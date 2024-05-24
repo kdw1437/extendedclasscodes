@@ -20,7 +20,7 @@ public class PostForwardFX {
                 
         try {
         	
-        	// Check for null or empty parameters
+        	// null또는 빈 변수 확인
             if (dataSetId == null || dataSetId.trim().isEmpty() || baseDt == null || baseDt.trim().isEmpty()) {
                 throw new ValidationException("DataSetId or BaseDt cannot be null or empty.");
             }
@@ -43,7 +43,7 @@ public class PostForwardFX {
         			double value = yieldObject.getDouble("value");
         			
         			int dayCount = (int) Math.round(tenor * 360);
-                    String formattedDayCount = String.format("%05d", dayCount); // Ensures the string has at least 5 digits, padding with zeros if necessary
+                    String formattedDayCount = String.format("%05d", dayCount);  // 문자열이 최소 5자리 이상이 되도록, 필요 시 앞에 0을 채워넣음
                     String riskFctrCode = dataId + "_" + formattedDayCount;
                     
                     //log.info("Risk Factor Code: " + riskFctrCode);

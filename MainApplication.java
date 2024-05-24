@@ -5,16 +5,16 @@ import com.uro.DaoService;
 public class MainApplication {
 
     public static void main(String[] args) {
-        // Initialize DaoService
+        // DaoService 초기화
         DaoService daoService = new DaoService();
 
-        // Populate sqlparam with some values
+        // 특정 값으로 sqlParam을 채운다.
         daoService.getSqlParam().addValue("username", "john_doe");
 
-        // Retrieve the value using getStringValue
+        // getStringValue를 이용해서 value을 retrieve한다.
         String username = daoService.getStringValue("username");
 
-        // Output the retrieved value
+        // retrieved된 value를 출력한다.
         System.out.println("Username: " + username);
     }
 }

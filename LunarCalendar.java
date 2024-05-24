@@ -29,7 +29,7 @@ public class LunarCalendar {
         if (map.containsKey(year)) return map.get(year);
         Set<LocalDate> holidaysSet = new HashSet<>();
 
-        // Solar holidays
+        // 양력 휴일
         holidaysSet.add(LocalDate.of(year, 1, 1));   // 신정
         holidaysSet.add(LocalDate.of(year, 3, 1));   // 삼일절
         holidaysSet.add(LocalDate.of(year, 5, 5));   // 어린이날
@@ -39,7 +39,7 @@ public class LunarCalendar {
         holidaysSet.add(LocalDate.of(year, 10, 9));  // 한글날
         holidaysSet.add(LocalDate.of(year, 12, 25)); // 성탄절
 
-        // Lunar holidays
+        // 음력 휴일
         holidaysSet.add(lunarToSolar(LocalDate.of(year, 1, 1)).minusDays(1));  // 설날 전날
         holidaysSet.add(lunarToSolar(LocalDate.of(year, 1, 1)));               // 설날
         holidaysSet.add(lunarToSolar(LocalDate.of(year, 1, 2)));               // 설날 다음날
@@ -49,14 +49,14 @@ public class LunarCalendar {
         holidaysSet.add(lunarToSolar(LocalDate.of(year, 8, 16)));              // 추석 다음날
 
         try {
-            // Substitute holidays
+            // 대체 공휴일
             holidaysSet.add(substituteHoliday(LocalDate.of(year, 5, 5)));  // 어린이날
             holidaysSet.add(substituteHoliday(LocalDate.of(year, 3, 1)));  // 삼일절
             holidaysSet.add(substituteHoliday(LocalDate.of(year, 8, 15))); // 광복절
             holidaysSet.add(substituteHoliday(LocalDate.of(year, 10, 3))); // 개천절
             holidaysSet.add(substituteHoliday(LocalDate.of(year, 10, 9))); // 한글날
 
-            // Lunar New Year substitute holidays
+            // 음력 설 대체 공휴일
             if (lunarToSolar(LocalDate.of(year, 1, 1)).getDayOfWeek().getValue() == LD_SUNDAY) {
                 holidaysSet.add(lunarToSolar(LocalDate.of(year, 1, 3)));
             }
@@ -67,7 +67,7 @@ public class LunarCalendar {
                 holidaysSet.add(lunarToSolar(LocalDate.of(year, 1, 3)));
             }
 
-            // Chuseok substitute holidays
+            // 추석 대체 공휴일
             if (lunarToSolar(LocalDate.of(year, 8, 14)).getDayOfWeek().getValue() == LD_SUNDAY) {
                 holidaysSet.add(lunarToSolar(LocalDate.of(year, 8, 17)));
             }

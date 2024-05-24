@@ -51,10 +51,10 @@ public class PostDividendStream {
 	            }
 	        }
 	        log.info(listParam.toString());
-	        // Set the converted ListParam in the DaoService object
+	        // 변환된 ListParam개게를 DaoService 객체에 set한다.
 	        dao.setValue("insertDividendStreamTp", listParam);
        
-	        // Attempt to execute the SQL statement
+	        // SQL statement를 execute한다.
             dao.sqlexe("s_insertDividendStream", false);
         } catch (SQLServiceException e) {
             e.printStackTrace();
