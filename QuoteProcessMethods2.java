@@ -885,80 +885,20 @@ public class QuoteProcessMethods2 {
 	        cntrCode = "QUOTE" + cntrID.toString(); 
 	        
 	        
-	        /*
-			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
-			ListParam listParam1 = new ListParam(columns1);
-			
-			int rowIdx1 = listParam1.createRow();
-			listParam1.setValue(rowIdx1, "GDS_ID", gdsID);
-			listParam1.setValue(rowIdx1, "CNTR_HSTR_NO", 1);
-			listParam1.setValue(rowIdx1, "SEQ", 1);
-			listParam1.setValue(rowIdx1, "CNTR_ID", cntrID);
-			listParam1.setValue(rowIdx1, "GDS_TYPE_TP", "STD");
-			listParam1.setValue(rowIdx1, "BUY_SELL_TP", "1");
-			
-            dao.setValue("insertOTCGDSMSTRTp", listParam1);
-
-            // SQL문을 실행한다.
-            dao.sqlexe("s_insertGdsMstr", false);
-            
-            log.debug("insertGdsMstrquerydone");
-            */
 	        //첫번째 테이블: OTC_GDS_MSTR
 	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 	        Object[] values1 = {gdsID, 1, 1, cntrID, "STD", "1"};
 	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTRTp", "s_insertGdsMstr");
 	        log.debug("insertGdsMstrquerydone");
 	        
-            //두번째 테이블: OTC_CNTR_MSTR
-            /*String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
-            		"BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
-			ListParam listParam2 = new ListParam(columns2);
-			
-			int rowIdx2 = listParam2.createRow();
-			listParam2.setValue(rowIdx2, "CNTR_ID", cntrID);
-            listParam2.setValue(rowIdx2, "CNTR_HSTR_NO", 1);
-            listParam2.setValue(rowIdx2, "ISIN_CODE", "1");
-            listParam2.setValue(rowIdx2, "CNTR_CODE", cntrCode);
-            listParam2.setValue(rowIdx2, "CNTR_TYPE_TP", "ELS");
-            listParam2.setValue(rowIdx2, "GDS_TMPL_TP", kiBarrier != null ? "001" : "007");
-            listParam2.setValue(rowIdx2, "DEAL_DT", effectiveDate);
-            listParam2.setValue(rowIdx2, "AVLB_DT", effectiveDate);
-            listParam2.setValue(rowIdx2, "END_DT", endDate);
-            listParam2.setValue(rowIdx2, "BUY_SELL_TP", "1");
-            listParam2.setValue(rowIdx2, "NMNL_AMT", 30000000);
-            listParam2.setValue(rowIdx2, "NMNL_AMT_CRNC_CODE", calculationCurrency);
-            listParam2.setValue(rowIdx2, "FV_LEVL_TP", "3");
-            listParam2.setValue(rowIdx2, "INSD_OTSD_EVLT_TP", "I");
-            listParam2.setValue(rowIdx2, "BASEP_DTRM_DT", effectiveDate);
-            
-            dao.setValue("insertOTCCNTRMSTR", listParam2);
-            
-            dao.sqlexe("s_insertOTCCNTRMSTR", false);
-            */
-	        //두번째 테이블: OTC_CNTR_MSTR, GDS_TMPL_TP 수정 (Monthly Cpn)
+            //두번째 테이블: OTC_CNTR_MSTR, GDS_TMPL_TP 수정 (Monthly Cpn)
 	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
 	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
 	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "003" : "009"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
 	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
 	        log.debug("insertOTCCNTRMSTR");
             
-			/*//세번째 테이블: OTC_LEG_MSTR
-			String[] columns3 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO"};
-            ListParam listParam3 = new ListParam(columns3);
-            
-            int rowIdx3 = listParam3.createRow();
-            listParam3.setValue(rowIdx3, "GDS_ID", gdsID);
-            listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
-            listParam3.setValue(rowIdx3, "LEG_NO", 0);
-            
-            dao.setValue("insertOTCLEGMSTR", listParam3);
-            
-            dao.sqlexe("s_insertOTCLEGMSTR", false);
-            
-            log.debug("insertOTCLEGMSTRdone");*/
-            
-            // 세번째 테이블: OTC_LEG_MSTR
+			// 세번째 테이블: OTC_LEG_MSTR
             String[] columns3 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO"};
             Object[] values3 = {gdsID, 1, 0};
 
@@ -990,34 +930,6 @@ public class QuoteProcessMethods2 {
             
             log.debug("insertOTCCNTRUNASPRTC done");
             
-            /*//5번째 테이블: OTC_EXEC_MSTR
-            
-            String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT",
-            		"DUMY_CPN_RT", "LOSS_PART_RT"};
-            ListParam listParam5 = new ListParam(columns5);
-            
-            int rowIdx5 = listParam5.createRow();
-            listParam5.setValue(rowIdx5, "GDS_ID", gdsID);
-            listParam5.setValue(rowIdx5, "CNTR_HSTR_NO", 1);
-            listParam5.setValue(rowIdx5, "LEG_NO", 0);
-            listParam5.setValue(rowIdx5, "EXEC_TP", "A");
-            listParam5.setValue(rowIdx5, "EXEC_GDS_NO", "1");
-            listParam5.setValue(rowIdx5, "SRC_COND_TP", "W");
-            listParam5.setValue(rowIdx5, "COND_RANGE_TP", "IO");
-            //YY_CPN_RT 월지급 쿠폰인 경우 0으로 수정
-            listParam5.setValue(rowIdx5, "YY_CPN_RT", 0);
-            
-            double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * prices.length / 12.0) : 0;
-            //dummyCouponRate도 0으로 수정
-            //listParam5.setValue(rowIdx5, "DUMY_CPN_RT", dummyCouponRate);
-            listParam5.setValue(rowIdx5, "DUMY_CPN_RT", 0);
-            listParam5.setValue(rowIdx5, "LOSS_PART_RT", lossParticipationRate);
-            
-            dao.setValue("insertOTCEXECMSTR", listParam5);
-            
-            dao.sqlexe("s_insertOTCEXECMSTR", false);
-            
-            log.debug("insertOTCEXECMSTR done");*/
             // 5번째 테이블: OTC_EXEC_MSTR
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
             Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", 0, 0, lossParticipationRate}; // YY_CPN_RT와 DUMY_CPN_RT를 0에 맞춘다.
@@ -1058,50 +970,6 @@ public class QuoteProcessMethods2 {
             
             log.debug("insertOTCEXECSCHDPRTC done");
             
-            /*//7번째, 8번째 테이블
-            if (kiBarrier != null) {
-            	String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
-            	ListParam listParam7= new ListParam(columns7);
-            	
-            	int rowIdx7 = listParam7.createRow();
-            	listParam7.setValue(rowIdx7, "GDS_ID", gdsID);
-            	listParam7.setValue(rowIdx7, "CNTR_HSTR_NO", 1);
-            	listParam7.setValue(rowIdx7, "LEG_NO", 0);
-            	listParam7.setValue(rowIdx7, "BRR_TP", "KI");
-            	listParam7.setValue(rowIdx7, "BRR_GDS_NO","1");
-            	listParam7.setValue(rowIdx7, "SRC_COND_TP", "W");
-            	listParam7.setValue(rowIdx7, "COND_RANGE_TP", "OI");
-            	listParam7.setValue(rowIdx7, "OBRA_PRIC_TYPE_TP", "CP");
-            	
-            	dao.setValue("insertOTCBRRMSTR", listParam7);
-            	
-            	dao.sqlexe("s_insertOTCBRRMSTR", false);
-            	
-            	log.debug("insertOTCBRRMSTR done");
-            	
-            	String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT",
-            			"OBRA_END_DT", "BRR_RT"};
-            	ListParam listParam8 = new ListParam(columns8);
-            	
-            	int rowIdx8 = listParam8.createRow();
-            	listParam8.setValue(rowIdx8, "GDS_ID", gdsID);
-            	listParam8.setValue(rowIdx8, "CNTR_HSTR_NO", 1);
-            	listParam8.setValue(rowIdx8, "LEG_NO", 0);
-            	listParam8.setValue(rowIdx8, "BRR_TP", "KI");
-            	listParam8.setValue(rowIdx8, "BRR_GDS_NO", "1");
-            	listParam8.setValue(rowIdx8, "SQNC", 1);
-            	listParam8.setValue(rowIdx8, "OBRA_STRT_DT", effectiveDate);
-            	listParam8.setValue(rowIdx8, "OBRA_END_DT", endDate);
-            	listParam8.setValue(rowIdx8, "BRR_RT", kiBarrier);
-            	
-            	dao.setValue("insertOTCBRRSCHDPRTC", listParam8);
-            	
-            	dao.sqlexe("s_insertOTCBRRSCHDPRTC", false);
-            	
-            	log.debug("insertOTCBRRSCHDPRTC done");
-            } else {
-            	//No operation(NOP)
-            }*/
             if (kiBarrier != null) {
                 // 7번째 테이블: OTC_BRR_MSTR
                 String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
