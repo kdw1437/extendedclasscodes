@@ -1857,4 +1857,210 @@ public class QuoteProcessMethods {
 		}
 		return cntrCode;
 	}
+	
+	//LEG_NO = 1로 변경해야 됨. (Swap 상품이 아닌 경우, 기존에는 0이 었음)
+	public static String performStepDownSwapInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
+		try {
+			Integer productId = getNullableInteger(jsonObject, "productId");
+			String effectiveDate = jsonObject.optString("effectiveDate", null);
+			String productType = jsonObject.optString("productType", null);
+			Integer earlyRedempCycle = getNullableInteger(jsonObject, "earlyRedempCycle");
+			Integer settleDateOffset =  getNullableInteger(jsonObject, "settleDateOffset");
+			Integer maturityEvaluationDays = getNullableInteger(jsonObject, "maturityEvaluationDays");
+			String underlyingAsset1 = jsonObject.optString("underlyingAsset1", null);
+			String underlyingAsset2 = jsonObject.optString("underlyingAsset2", null);
+			String underlyingAsset3 = jsonObject.optString("underlyingAsset3", null);
+			String exercisePrices = jsonObject.optString("exercisePrices", null);
+			Double coupon = getNullableDouble(jsonObject, "coupon");
+			Double lizardCoupon = getNullableDouble(jsonObject, "lizardCoupon");
+			Integer lossParticipationRate = getNullableInteger(jsonObject, "lossParticipationRate");
+			Integer kiBarrier = getNullableInteger(jsonObject, "kiBarrier");
+			//swap 섹션 5개 항목 추가
+			String swapCouponType = jsonObject.optString("swapCouponType", null);
+			String swapUnderlyingAsset = jsonObject.optString("swapUnderlyingAsset", null);
+			Integer swapInterestPaymentCycle = getNullableInteger(jsonObject, "swapInterestPaymentCycle");
+			Double swapSpread = getNullableDouble(jsonObject, "swapSpread");
+			String dayCountConvention = jsonObject.optString("dayCountConvention", null);
+			
+			String calculationCurrency = jsonObject.optString("calculationCurrency", null);
+			
+			// effectiveDate를 파싱한다. (json파싱하듯이 (String을 jsonArray나 object객체로 변경) (String을 DateTimeFormatter로 바꿔줘야 한다.)
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+	        LocalDate effectiveDateParsed = LocalDate.parse(effectiveDate, formatter);
+			//endDate를 계산한다.
+						
+			String[] prices = exercisePrices.split("-");
+	        List<LocalDate> exerciseDates = new ArrayList<>();
+	        List<LocalDate> adjustedExerciseDates = new ArrayList<>();
+	        
+	        LocalDate exerciseDate = effectiveDateParsed;  // effective date로 부터 시작한다.
+	        //이거 날짜 세아리는 거 과거 방식 코드
+	        /*for (int i = 0; i < prices.length; i++) {
+	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // 이전 exercise date에 cycle을 추가한다.
+	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // 주말과 휴일에 대해 조정한다.
+	            exerciseDates.add(exerciseDate);
+	        }*/ 
+	        
+	        //원 exerciseDate
+	        for (String price : prices) {
+	        	exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);
+	        	exerciseDates.add(exerciseDate);
+	        }
+	        
+	        //휴일 조정된 exerciseDate
+	        for (LocalDate date : exerciseDates) {
+	            adjustedExerciseDates.add(adjustForWeekend(date));
+	        }
+	        
+	        String endDate = adjustedExerciseDates.get(adjustedExerciseDates.size() - 1).format(formatter);
+	        
+	        // endDate 사용하거나 로깅한다.
+	        log.debug(exerciseDates.toString());
+			
+	        /*dao.sqlexe("s_selectOTCSEQCNTRID", false);
+	        ListParam CNTRIDParam = dao.getNowListParam();
+	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+	        
+	        dao.sqlexe("s_selectCNTRGDSID", false);
+	        ListParam CNTRGDSIDParam = dao.getNowListParam();
+	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];*/
+	        Map<String, BigDecimal> ids = fetchIDs(dao);
+	        BigDecimal cntrID = ids.get("cntrID");
+	        BigDecimal gdsID = ids.get("gdsID");
+	        
+	        cntrCode = "QUOTE" + cntrID.toString(); 
+	        
+	        
+	        //첫번째 테이블: OTC_GDS_MSTR
+	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
+	        Object[] values1 = {gdsID, 1, 1, cntrID, "STD", "1"};
+	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTRTp", "s_insertGdsMstr");
+	        log.debug("insertGdsMstrquerydone");
+	        
+            //두번째 테이블: OTC_CNTR_MSTR
+	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
+	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
+	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "001" : "007"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
+	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
+	        log.debug("insertOTCCNTRMSTR");
+            
+			//세번째 테이블: OTC_LEG_MSTR
+			String[] columns3 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO"};
+            ListParam listParam3 = new ListParam(columns3);
+            
+            int rowIdx3 = listParam3.createRow();
+            listParam3.setValue(rowIdx3, "GDS_ID", gdsID);
+            listParam3.setValue(rowIdx3, "CNTR_HSTR_NO", 1);
+            //이거 수정. LEG_NO = 1
+            listParam3.setValue(rowIdx3, "LEG_NO", 1);
+            
+            dao.setValue("insertOTCLEGMSTR", listParam3);
+            
+            dao.sqlexe("s_insertOTCLEGMSTR", false);
+            
+            log.debug("insertOTCLEGMSTRdone");
+	        
+	        	        
+	        //4번째 테이블: OTC_CNTR_UNAS_PRTC
+	        String[] underlyingAssets = {underlyingAsset1, underlyingAsset2, underlyingAsset3};
+	        int seq = 1;
+
+	        for (String asset : underlyingAssets) {
+	            if (asset != null) {
+	                String[] columns4 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
+	                Object[] values4 = {cntrID, 1, seq++, asset, 1};
+	                
+	                createAndExecuteListParam(dao, columns4, values4, "insertOTCCNTRUNASPRTC", "s_insertOTCCNTRUNASPRTC");
+	            }
+	        }
+
+	        log.debug("insertOTCCNTRUNASPRTC done");
+
+            //5번째 테이블: OTC_EXEC_MSTR
+	        String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT",
+	                "DUMY_CPN_RT", "LOSS_PART_RT"};
+
+	        double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * prices.length / 12.0) : 0;
+
+	        Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate};
+
+	        createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
+
+	        log.debug("insertOTCEXECMSTR done");
+
+            //6번째 테이블: OTC_EXEC_SCHD_PRTC
+            
+            String[] columns6 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SQNC", "EVLT_DT", "ACTP_RT", "CPN_RT", "SETL_DT"};
+            ListParam listParam6 = new ListParam(columns6);
+            int sqnc = 1;
+            for (int i = 0; i < prices.length; i++) {
+            	int rowIdx6 = listParam6.createRow();
+            	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
+            	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
+            	listParam6.setValue(rowIdx6, "LEG_NO", 1);
+            	listParam6.setValue(rowIdx6, "EXEC_TP", "A");
+            	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
+            	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
+            	listParam6.setValue(rowIdx6, "EVLT_DT", adjustedExerciseDates.get(i).format(formatter));
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
+            	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
+            	LocalDate initialDate = adjustedExerciseDates.get(i);
+            	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
+            	adjustedDate = adjustForWeekend(adjustedDate);
+            	
+            	listParam6.setValue(rowIdx6, "SETL_DT", adjustedDate.format(formatter));
+            }
+            
+            dao.setValue("insertOTCEXECSCHDPRTC", listParam6);
+            
+            dao.sqlexe("s_insertOTCEXECSCHDPRTC", false);
+            
+            log.debug("insertOTCEXECSCHDPRTC done");
+            
+            if (kiBarrier != null) {
+                // Insert into OTC_BRRMSTR
+                String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
+                Object[] values7 = {gdsID, 1, 1, "KI", "1", "W", "OI", "CP"};
+                createAndExecuteListParam(dao, columns7, values7, "insertOTCBRRMSTR", "s_insertOTCBRRMSTR");
+                log.debug("insertOTCBRRMSTR done");
+                
+                // Insert into OTC_BRRSCHDPRTC
+                String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
+                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
+                log.debug("insertOTCBRRSCHDPRTC done");
+            } else {
+                // No operation (NOP)
+            }
+            //여기까지 기존 데이터 입력에서 LEG_NO = 1로 변경
+            //OTC_LEG_MSTR (LEG_NO = 2, PAY_RECV_TP = P)
+            //이거 sql query문 따로 작성해 주어야 한다. (240527)
+            String[] columns9 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "PAY_RECV_TP"};
+            Object[] values9 = {gdsID, 1, 2, "P"};
+            createAndExecuteListParam(dao, columns9, values9, "insertOTCLEGMSTR_SWAP", "s_insertOTCLEGMSTR_SWAP");
+            log.debug("insertOTCLEGMSTR_SWAP done");
+            
+            //이거 select문으로 unas_id 들고 와야 함. (여기서 부터 수정 들어가야 함)
+            dao.sqlexe("s_selectOTCUNASMSTR", false);
+	        ListParam CNTRIDParam = dao.getNowListParam();
+	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+	        
+            //OTC_CNTR_UNAS_PRTC
+            String[] columns10 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
+            Object[] values10 = {cntrID, 1, 1, unasID, 2};
+            
+
+            
+            dao.commit();
+            log.debug("Transaction committed successfully.");
+            
+		} catch (Exception e) {
+			dao.rollback();
+			
+			e.printStackTrace();
+			log.error("Error performing database operation, rollback initiated.", e);
+		}
+		return cntrCode;
+	}
 }
