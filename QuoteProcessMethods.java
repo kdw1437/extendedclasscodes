@@ -2135,11 +2135,11 @@ public class QuoteProcessMethods {
             listParam12.setValue(rowIdx12, "SPRD", SPRD);
             
             //이거 sql query문 만들어야 한다.
-        	dao.setValue("insertOTCINTSTRCMSTR", listParam12);
+        	dao.setValue("insertOTCINTSTRCMSTR_SWAP", listParam12);
             
-            dao.sqlexe("s_insertOTCINTSTRCMSTR", false);
+            dao.sqlexe("s_insertOTCINTSTRCMSTR_SWAP", false);
             
-            log.debug("insertOTCINTSTRCMSTRdone");
+            log.debug("insertOTCINTSTRCMSTR_SWAP done");
             
             //OTC_INT_STRC_CPN_SCHD_PRTC (query문 만들어야 한다.) END_DT column이 EOT_DT로 되어 있음.
             String[] columns13 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "INT_STRC_GDS_NO", "SQNC", "INT_DTRM_DT", "STRT_DT", "EOT_DT", "SETL_DT"};
@@ -2168,9 +2168,9 @@ public class QuoteProcessMethods {
                 intDtrmDt = endDt;
             }
             
-            dao.setValue("insertOTCINTSTRCCPNSCHDPRTC", listParam13);
-            dao.sqlexe("s_insertOTCINTSTRCCPNSCHDPRTC", false);
-            log.debug("insertOTCINTSTRCCPNSCHDPRTC done");
+            dao.setValue("insertOTCINTSTRCCPNSCHDPRTC_SWAP", listParam13);
+            dao.sqlexe("s_insertOTCINTSTRCCPNSCHDPRTC_SWAP", false);
+            log.debug("insertOTCINTSTRCCPNSCHDPRTC_SWAP done");
             
             dao.commit();
             log.debug("Transaction committed successfully.");
@@ -2180,6 +2180,365 @@ public class QuoteProcessMethods {
 			
 			e.printStackTrace();
 			log.error("Error performing database operation, rollback initiated.", e);
+		}
+		return cntrCode;
+	}
+	
+	public static String performLizardSwapInsert(DaoService dao, JSONObject jsonObject) {
+		String cntrCode = null;
+		try {
+			Integer productId = getNullableInteger(jsonObject, "productId");
+			String effectiveDate = jsonObject.optString("effectiveDate", null);
+			String productType = jsonObject.optString("productType", null);
+			Integer earlyRedempCycle = getNullableInteger(jsonObject, "earlyRedempCycle");
+			Integer settleDateOffset =  getNullableInteger(jsonObject, "settleDateOffset");
+			Integer maturityEvaluationDays = getNullableInteger(jsonObject, "maturityEvaluationDays");
+			String underlyingAsset1 = jsonObject.optString("underlyingAsset1", null);
+			String underlyingAsset2 = jsonObject.optString("underlyingAsset2", null);
+			String underlyingAsset3 = jsonObject.optString("underlyingAsset3", null);
+			String exercisePrices = jsonObject.optString("exercisePrices", null);
+			Double coupon = getNullableDouble(jsonObject, "coupon");
+			Double lizardCoupon = getNullableDouble(jsonObject, "lizardCoupon");
+			Integer lossParticipationRate = getNullableInteger(jsonObject, "lossParticipationRate");
+			Integer kiBarrier = getNullableInteger(jsonObject, "kiBarrier");
+			String calculationCurrency = jsonObject.optString("calculationCurrency", null);
+			
+			//swap 섹션 5개 항목 추가
+			String swapCouponType = jsonObject.optString("swapCouponType", null);
+			String swapUnderlyingAsset = jsonObject.optString("swapUnderlyingAsset", null);
+			Integer swapInterestPaymentCycle = getNullableInteger(jsonObject, "swapInterestPaymentCycle");
+			Double swapSpread = getNullableDouble(jsonObject, "swapSpread");
+			String dayCountConvention = jsonObject.optString("dayCountConvention", null);
+			
+			
+			
+			if (exercisePrices == null) {
+				throw new IllegalArgumentException("exercisePrices is null");
+			}
+			
+			String[] priceComponents = exercisePrices.split("-");
+			List<String> mainPrices = new ArrayList<>();
+			List<String> barrierPrices = new ArrayList<>();
+			List<Integer> barrierLocations = new ArrayList<>();
+			for (int i = 0; i < priceComponents.length; i++) {
+				String component = priceComponents[i];
+				if (component.contains("(")) {
+					String mainPrice = component.substring(0, component.indexOf("("));
+					String barrierPrice = component.substring(component.indexOf("(") + 1, component.indexOf(")"));
+					
+					mainPrices.add(mainPrice);
+					barrierPrices.add(barrierPrice);
+					barrierLocations.add(i);
+							
+				} else {
+					mainPrices.add(component);
+				}
+			}
+			//lizard회차()로 표시된, 회차(몇 회차인지)도 array이든지, arraylist형태의 목록으로 뽑아내야 한다.
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+	        LocalDate effectiveDateParsed = LocalDate.parse(effectiveDate, formatter);
+	        
+	        List<LocalDate> exerciseDates = new ArrayList<>();
+	        List<LocalDate> adjustedExerciseDates = new ArrayList<>();
+	        
+	        LocalDate exerciseDate = effectiveDateParsed;  // effective date로 부터 시작
+	        //이거 날짜 세아리는 거 과거 방식 코드
+	        /*for (int i = 0; i < prices.length; i++) {
+	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // 이전 exercise date에 cycle을 추가
+	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // 주말 휴일 조정
+	            exerciseDates.add(exerciseDate);
+	        }*/ 
+	        
+	        //원 exerciseDate
+	        for (String price : priceComponents) {
+	        	exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);
+	        	exerciseDates.add(exerciseDate);
+	        }
+	        
+	        //조정된 exerciseDate
+	        for (LocalDate date : exerciseDates) {
+	            adjustedExerciseDates.add(adjustForWeekend(date));
+	        }
+	        
+	        String endDate = adjustedExerciseDates.get(adjustedExerciseDates.size() - 1).format(formatter);
+	        
+	        // endDate 사용하고 로깅
+	        log.debug(adjustedExerciseDates.toString());
+	        	        
+	        /*List<LocalDate> exerciseDates = new ArrayList<>();
+
+	        LocalDate exerciseDate = effectiveDateParsed;  // Start from the effective date
+	        for (int i = 0; i < priceComponents.length; i++) {
+	            exerciseDate = exerciseDate.plusMonths(earlyRedempCycle);  // Add the cycle to the previous exercise date
+	            exerciseDate = adjustForWeekendAndHolidays(exerciseDate);  // Adjust for weekends and holidays
+	            exerciseDates.add(exerciseDate);
+	        }
+	        
+	        String endDate = exerciseDates.get(exerciseDates.size() - 1).format(formatter);
+	        */
+	        
+	        Map<String, BigDecimal> ids = fetchIDs(dao);
+	        BigDecimal cntrID = ids.get("cntrID");
+	        BigDecimal gdsID = ids.get("gdsID");
+	        
+	        cntrCode = "QUOTE" + cntrID.toString();
+	        
+	        // 첫번째 테이블: OTC_GDS_MSTR
+	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
+	        Object[] values1 = {gdsID, 1, 1, cntrID, "STD", "1"};
+	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTR", "s_insertGdsMstr");
+	        log.debug("insertGdsMstr query done");
+
+	        // 두번째 테이블: OTC_CNTR_MSTR
+	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
+	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
+	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "005" : "011"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
+	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
+	        log.debug("insertOTCCNTRMSTR query done");
+
+	        // 세번째 테이블: OTC_LEG_MSTR
+	        String[] columns3 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO"};
+	        Object[] values3 = {gdsID, 1, 1};
+	        createAndExecuteListParam(dao, columns3, values3, "insertOTCLEGMSTR", "s_insertOTCLEGMSTR");
+	        log.debug("insertOTCLEGMSTR query done");
+
+            //네번째 테이블: OTC_CNTR_UNAS_PRTC
+            String[] columns4 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
+            ListParam listParam4 = new ListParam(columns4);
+            
+            String[] underlyingAssets= {underlyingAsset1, underlyingAsset2, underlyingAsset3};
+            
+            int seq = 1;
+            for (String asset: underlyingAssets) {
+            	if (asset != null) {
+            		int rowIdx4 = listParam4.createRow();
+            		listParam4.setValue(rowIdx4, "CNTR_ID", cntrID);
+            		listParam4.setValue(rowIdx4, "CNTR_HSTR_NO", 1);
+            		listParam4.setValue(rowIdx4, "SEQ", seq++);
+            		listParam4.setValue(rowIdx4, "UNAS_ID", asset);
+            		listParam4.setValue(rowIdx4, "LEG_NO", 1);
+            	}
+            }
+            
+            dao.setValue("insertOTCCNTRUNASPRTC", listParam4);
+            
+            dao.sqlexe("s_insertOTCCNTRUNASPRTC", false);
+            
+            log.debug("insertOTCCNTRUNASPRTC done");
+            
+            // 5번째 테이블: OTC_EXEC_MSTR
+
+            String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
+            double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * mainPrices.size() / 12.0) : 0;
+
+            Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate};
+
+            createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
+
+            log.debug("insertOTCEXECMSTR done");
+
+            
+            //6번째 테이블: OTC_EXEC_SCHD_PRTC
+            
+            String[] columns6 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SQNC", "EVLT_DT", "ACTP_RT", "CPN_RT", "SETL_DT"};
+            ListParam listParam6 = new ListParam(columns6);
+            int sqnc = 1;
+            for (int i = 0; i < mainPrices.size(); i++) { //Price(barrier)의 arraylist를 사용하기 때문에, length에서 size()로 바꾼다. length는 array의 길이 return. size()는 arrayList의 길이 return.
+            	int rowIdx6 = listParam6.createRow();
+            	listParam6.setValue(rowIdx6, "GDS_ID", gdsID);
+            	listParam6.setValue(rowIdx6, "CNTR_HSTR_NO", 1);
+            	listParam6.setValue(rowIdx6, "LEG_NO", 1);
+            	listParam6.setValue(rowIdx6, "EXEC_TP", "A");
+            	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
+            	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
+            	listParam6.setValue(rowIdx6, "EVLT_DT", adjustedExerciseDates.get(i).format(formatter));
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(mainPrices.get(i))); //[i] 대신 get메소드 이용, [i]는 array의 객체 return, get(i)는 arrayList의 i번째 element return
+            	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
+            	LocalDate initialDate = adjustedExerciseDates.get(i);
+            	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
+            	adjustedDate = adjustForWeekend(adjustedDate);
+            	
+            	listParam6.setValue(rowIdx6, "SETL_DT", adjustedDate.format(formatter));
+            }
+            
+            dao.setValue("insertOTCEXECSCHDPRTC", listParam6);
+            
+            dao.sqlexe("s_insertOTCEXECSCHDPRTC", false);
+            
+            log.debug("insertOTCEXECSCHDPRTC done");
+            
+            if (kiBarrier != null) {
+                // 7번째 테이블
+                String[] columns7 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
+                Object[] values7 = {gdsID, 1, 1, "KI", "1", "W", "OI", "CP"};
+                createAndExecuteListParam(dao, columns7, values7, "insertOTCBRRMSTR", "s_insertOTCBRRMSTR");
+                log.debug("insertOTCBRRMSTR done");
+
+                // 8번째 테이블
+                String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
+                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
+                log.debug("insertOTCBRRSCHDPRTC done");
+            }
+
+            //OTC_BRR_MSTR (Lizard인 경우)
+            String[] columns9 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "OBRA_PRIC_TYPE_TP"};
+            Object[] values9 = {gdsID, 1, 1, "LZ", "1", "W", "OI", "CP"};
+
+            createAndExecuteListParam(dao, columns9, values9, "insertOTCBRRMSTR", "s_insertOTCBRRMSTR");
+
+            log.debug("insertOTCBRRMSTR2nd done");
+
+        	
+        	//OTC_BRR_SCHD_PRTC (Lizard인 경우) (10번째 테이블의 경우)
+        	String[] columns10 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT",
+        			"OBRA_END_DT", "BRR_RT", "CPN_RT"};
+        	ListParam listParam10 = new ListParam(columns10);
+        	
+        	// 새 format을 위한 Formatter
+        	DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyyMMdd");
+        	
+        	int sqnc2 = 1;
+        	for (int i = 0; i < barrierPrices.size(); i++) {
+        		int rowIdx10 = listParam10.createRow();
+	        	listParam10.setValue(rowIdx10, "GDS_ID", gdsID);
+	        	listParam10.setValue(rowIdx10, "CNTR_HSTR_NO", 1);
+	        	listParam10.setValue(rowIdx10, "LEG_NO", 1);
+	        	listParam10.setValue(rowIdx10, "BRR_TP", "LZ");
+	        	listParam10.setValue(rowIdx10, "BRR_GDS_NO", "1");
+	        	listParam10.setValue(rowIdx10, "SQNC", sqnc2++);
+	        	listParam10.setValue(rowIdx10, "OBRA_STRT_DT", effectiveDate);
+	        	//OBRA_END_DT 데이터 포맷 상의 문제가 있다. 수정해줘야 한다.
+	        	listParam10.setValue(rowIdx10, "OBRA_END_DT", adjustedExerciseDates.get(barrierLocations.get(i)).format(formatter)); // Format the date from exerciseDates
+	        	listParam10.setValue(rowIdx10, "BRR_RT", Double.parseDouble(barrierPrices.get(i))/100);
+	        	listParam10.setValue(rowIdx10, "CPN_RT", ((barrierLocations.get(i) + 1) * 6 / 12.0) * (lizardCoupon / 100.0));
+        	}
+        	//CPN_RT의 추가로 다른 sql query를 사용하던지, sql query를 CPN_RT가 있을 때와 없을 때 모두 수용가능 하도록 작성할 필요가 있다.
+        	dao.setValue("insertOTCBRRSCHDPRTC2", listParam10);
+        	
+        	dao.sqlexe("s_insertOTCBRRSCHDPRTC2", false);
+        	
+        	log.debug("insertOTCBRRSCHDPRTC2nd done");
+        	
+        	//OTC_LEG_MSTR (LEG_NO = 2, PAY_RECV_TP = P)
+            //이거 query 작성해줌.
+            String[] columns11 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "PAY_RECV_TP"};
+            Object[] values11 = {gdsID, 1, 2, "P"};
+            createAndExecuteListParam(dao, columns11, values11, "insertOTCLEGMSTR_SWAP", "s_insertOTCLEGMSTR_SWAP");
+            log.debug("insertOTCLEGMSTR_SWAP done");
+            
+            //이거 select문으로 unas_id 들고 와야 함. (여기서 부터 수정 들어가야 함) unasId (이거 sqlquery작성함)
+            String[] columns12 = {"UNAS_NM"};
+            Object[] values12 = {swapUnderlyingAsset};
+            String sqlCommand = "s_selectOTCUNASMSTR";
+            createAndExecuteDirectParam(dao, columns12, values12, sqlCommand);
+            ListParam OTCUNASMSTRParam = dao.getNowListParam();
+            log.debug(OTCUNASMSTRParam.toString());
+	        
+            String unasID = (String) OTCUNASMSTRParam.getValue(0, "unasID");
+            log.debug("Retrieved unasID value: " + unasID);
+            
+            //OTC_CNTR_UNAS_PRTC. sql query문 작성 필요
+            String[] columns13 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
+            Object[] values13 = {cntrID, 1, 1, unasID, 2};
+            createAndExecuteListParam(dao, columns13, values13, "insertOTCCNTRUNASPRTC_SWAP", "s_insertOTCCNTRUNASPRTC_SWAP");
+            log.debug("insertOTCCNTRUNASPRTC_SWAP done");
+           
+            //OTC_INT_STRC_MSTR
+            String[] columns14 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "INT_STRC_GDS_NO", "INT_TYPE_TP", 
+            		"CPN_CYCL_TP", "DYS_CALC_FRM_TP", "FIXD_INT", "SPRD"
+            };
+            
+            String intTypeTp = swapCouponType.equals("Floating") ? "FLO" : swapCouponType.equals("Fixed") ? "FIX" : null;
+            
+            String dysCalcFrmTp;
+            switch (dayCountConvention) {
+            case "ACT/365":
+            	dysCalcFrmTp = "A365";
+            	break;
+            case "ACT/360":
+            	dysCalcFrmTp = "A360";
+            	break;
+            case "30/360":
+            	dysCalcFrmTp = "3360";
+            	break;
+            case "30E/360":
+            	dysCalcFrmTp = "E360";
+            	break;
+            case "ACT/ACT":
+            	dysCalcFrmTp = "AACT";
+            	break;
+            case "unadjust":
+            	dysCalcFrmTp = "ACTD";
+            	break;
+            default:
+            	dysCalcFrmTp = null;
+            	break;
+            }
+            
+            Double fixdInt = swapCouponType.equals("Floating") ? 0 : swapCouponType.equals("Fixed") ? swapSpread/100 : null;
+            
+            Double SPRD = swapCouponType.equals("Floating") ? swapSpread/100 : swapCouponType.equals("Fixed") ? 0 : null;
+            
+            ListParam listParam14 = new ListParam(columns14);
+            
+            int rowIdx14 = listParam14.createRow();
+            listParam14.setValue(rowIdx14, "GDS_ID", gdsID);
+            listParam14.setValue(rowIdx14, "CNTR_HSTR_NO", 1);
+            listParam14.setValue(rowIdx14, "LEG_NO", 2);
+            listParam14.setValue(rowIdx14, "INT_STRC_GDS_NO", 1);
+            listParam14.setValue(rowIdx14, "INT_TYPE_TP", intTypeTp);
+            listParam14.setValue(rowIdx14, "CPN_CYCL_TP", 3);
+            listParam14.setValue(rowIdx14, "DYS_CALC_FRM_TP", dysCalcFrmTp);
+            listParam14.setValue(rowIdx14, "FIXD_INT", fixdInt);
+            listParam14.setValue(rowIdx14, "SPRD", SPRD);
+            
+            //이거 sql query문 만들어야 한다.
+        	dao.setValue("insertOTCINTSTRCMSTR_SWAP", listParam14);
+            
+            dao.sqlexe("s_insertOTCINTSTRCMSTR_SWAP", false);
+            
+            log.debug("insertOTCINTSTRCMSTR_SWAP done");
+            
+            //OTC_INT_STRC_CPN_SCHD_PRTC (query문 만들어야 한다.) END_DT column이 EOT_DT로 되어 있음.
+            String[] columns15 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "INT_STRC_GDS_NO", "SQNC", "INT_DTRM_DT", "STRT_DT", "EOT_DT", "SETL_DT"};
+            
+            ListParam listParam15 = new ListParam(columns15);
+            int sqnc3 = 1;
+            
+            LocalDate intDtrmDt = effectiveDateParsed;
+            
+            for (int i = 0; i < priceComponents.length*earlyRedempCycle/swapInterestPaymentCycle; i++) {
+            	int rowIdx15 = listParam15.createRow();
+            	listParam15.setValue(rowIdx15, "GDS_ID", gdsID);
+            	listParam15.setValue(rowIdx15, "CNTR_HSTR_NO", 1);
+            	listParam15.setValue(rowIdx15, "LEG_NO", 2);
+            	listParam15.setValue(rowIdx15, "INT_STRC_GDS_NO", 1);
+            	listParam15.setValue(rowIdx15, "SQNC", sqnc3++);
+            	listParam15.setValue(rowIdx15, "INT_DTRM_DT", intDtrmDt.format(formatter));
+                listParam15.setValue(rowIdx15, "STRT_DT", intDtrmDt.format(formatter));
+
+                LocalDate endDt = intDtrmDt.plusMonths(swapInterestPaymentCycle);
+                listParam15.setValue(rowIdx15, "EOT_DT", endDt.format(formatter));
+
+                LocalDate setlDt = endDt.plusDays(settleDateOffset);
+                listParam15.setValue(rowIdx15, "SETL_DT", adjustForWeekend(setlDt).format(formatter));
+
+                intDtrmDt = endDt;
+            }
+            
+            dao.setValue("insertOTCINTSTRCCPNSCHDPRTC_SWAP", listParam15);
+            dao.sqlexe("s_insertOTCINTSTRCCPNSCHDPRTC_SWAP", false);
+            log.debug("insertOTCINTSTRCCPNSCHDPRTC_SWAP done");
+            
+        	 dao.commit();
+             log.debug("Transaction committed successfully.");
+             
+ 		} catch (Exception e) {
+ 			dao.rollback();
+ 			
+ 			e.printStackTrace();
+ 			log.error("Error performing database operation, rollback initiated.", e);
 		}
 		return cntrCode;
 	}

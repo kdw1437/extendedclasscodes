@@ -41,6 +41,12 @@ public class PostQuoteUpdateV3 {
                         case "MonthlyCoupon":
                             cntrCode = QuoteProcessMethods.performMonthlyCouponInsert(dao, jsonObject);
                             break;
+                        case "StepDown(Swap)":
+                        	cntrCode = QuoteProcessMethods.performStepDownSwapInsert(dao, jsonObject);
+                        	break;
+                        case "Lizard(Swap)":
+                        	cntrCode = QuoteProcessMethods.performLizardSwapInsert(dao, jsonObject);
+                        	break;
                         default:
                             log.debug("Unhandled product type: " + productType);
                             break;
