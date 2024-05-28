@@ -2156,7 +2156,12 @@ public class QuoteProcessMethods {
             	listParam13.setValue(rowIdx13, "LEG_NO", 2);
             	listParam13.setValue(rowIdx13, "INT_STRC_GDS_NO", 1);
             	listParam13.setValue(rowIdx13, "SQNC", sqnc2++);
-            	listParam13.setValue(rowIdx13, "INT_DTRM_DT", intDtrmDt.format(formatter));
+            	//listParam13.setValue(rowIdx13, "INT_DTRM_DT", intDtrmDt.format(formatter));
+            	if ("Fixed".equals(swapCouponType)) {
+                    listParam13.setValue(rowIdx13, "INT_DTRM_DT", null);
+                } else {
+                    listParam13.setValue(rowIdx13, "INT_DTRM_DT", intDtrmDt.format(formatter));
+                }
                 listParam13.setValue(rowIdx13, "STRT_DT", intDtrmDt.format(formatter));
 
                 LocalDate endDt = intDtrmDt.plusMonths(swapInterestPaymentCycle);
@@ -2515,7 +2520,13 @@ public class QuoteProcessMethods {
             	listParam15.setValue(rowIdx15, "LEG_NO", 2);
             	listParam15.setValue(rowIdx15, "INT_STRC_GDS_NO", 1);
             	listParam15.setValue(rowIdx15, "SQNC", sqnc3++);
-            	listParam15.setValue(rowIdx15, "INT_DTRM_DT", intDtrmDt.format(formatter));
+            	//listParam15.setValue(rowIdx15, "INT_DTRM_DT", intDtrmDt.format(formatter));
+            	if ("Fixed".equals(swapCouponType)) {
+                    listParam15.setValue(rowIdx15, "INT_DTRM_DT", null);
+                } else {
+                    listParam15.setValue(rowIdx15, "INT_DTRM_DT", intDtrmDt.format(formatter));
+                }
+
                 listParam15.setValue(rowIdx15, "STRT_DT", intDtrmDt.format(formatter));
 
                 LocalDate endDt = intDtrmDt.plusMonths(swapInterestPaymentCycle);
