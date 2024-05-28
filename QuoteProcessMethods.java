@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 
 import com.uro.DaoService;
 import com.uro.log.LoggerMg;
+import com.uro.service.sql.SQLParam;
 import com.uro.transfer.ListParam;
 public class QuoteProcessMethods {
 	private static Logger log = LoggerMg.getInstance().getLogger();
@@ -107,6 +108,24 @@ public class QuoteProcessMethods {
     }
 
     
+    public static void createAndExecuteDirectParam(DaoService dao, String[] paramKeys, Object[] paramValues, String sqlCommand) throws Exception {
+        // Check if the lengths of paramKeys and paramValues match
+        if (paramKeys.length != paramValues.length) {
+            throw new IllegalArgumentException("The lengths of paramKeys and paramValues must match.");
+        }
+
+        // Retrieve the SQLParam object from the DaoService instance
+        SQLParam sqlParam = dao.getSqlParam();
+
+        // Add each parameter directly to the SQLParam object
+        for (int i = 0; i < paramKeys.length; i++) {
+            sqlParam.addValue(paramKeys[i], paramValues[i]);
+        }
+
+        // Execute the SQL command
+        dao.sqlexe(sqlCommand, false);
+    }
+
 	public static String performStepDownInsert(DaoService dao, JSONObject jsonObject) {
 		String cntrCode = null;
 		try {
@@ -179,7 +198,15 @@ public class QuoteProcessMethods {
 	        
 	        cntrCode = "QUOTE" + cntrID.toString(); 
 	        
-	        
+	        String[] columns10 = {"UNAS_NM"};
+            Object[] values10 = {"CD91"};
+            String sqlCommand = "s_selectOTCUNASMSTR";
+            createAndExecuteDirectParam(dao, columns10, values10, sqlCommand);
+            ListParam OTCUNASMSTRParam = dao.getNowListParam();
+            log.debug(OTCUNASMSTRParam.toString());
+            
+            String unasIDValue = (String) OTCUNASMSTRParam.getValue(0, "unasID");
+            log.debug("Retrieved unasID value: " + unasIDValue);
 	        /*
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 			ListParam listParam1 = new ListParam(columns1);
@@ -2035,22 +2062,115 @@ public class QuoteProcessMethods {
             }
             //여기까지 기존 데이터 입력에서 LEG_NO = 1로 변경
             //OTC_LEG_MSTR (LEG_NO = 2, PAY_RECV_TP = P)
-            //이거 sql query문 따로 작성해 주어야 한다. (240527)
+            //이거 query 작성해줌.
             String[] columns9 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "PAY_RECV_TP"};
             Object[] values9 = {gdsID, 1, 2, "P"};
             createAndExecuteListParam(dao, columns9, values9, "insertOTCLEGMSTR_SWAP", "s_insertOTCLEGMSTR_SWAP");
             log.debug("insertOTCLEGMSTR_SWAP done");
             
-            //이거 select문으로 unas_id 들고 와야 함. (여기서 부터 수정 들어가야 함)
-            dao.sqlexe("s_selectOTCUNASMSTR", false);
-	        ListParam CNTRIDParam = dao.getNowListParam();
-	        BigDecimal cntrID = (BigDecimal) CNTRIDParam.getRow(0)[0];
+            //이거 select문으로 unas_id 들고 와야 함. (여기서 부터 수정 들어가야 함) unasId (이거 sqlquery작성함)
+            String[] columns10 = {"UNAS_NM"};
+            Object[] values10 = {swapUnderlyingAsset};
+            String sqlCommand = "s_selectOTCUNASMSTR";
+            createAndExecuteDirectParam(dao, columns10, values10, sqlCommand);
+            ListParam OTCUNASMSTRParam = dao.getNowListParam();
+            log.debug(OTCUNASMSTRParam.toString());
 	        
-            //OTC_CNTR_UNAS_PRTC
-            String[] columns10 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
-            Object[] values10 = {cntrID, 1, 1, unasID, 2};
+            String unasID = (String) OTCUNASMSTRParam.getValue(0, "unasID");
+            log.debug("Retrieved unasID value: " + unasID);
             
+            //OTC_CNTR_UNAS_PRTC. sql query문 작성 필요
+            String[] columns11 = {"CNTR_ID", "CNTR_HSTR_NO", "SEQ", "UNAS_ID", "LEG_NO"};
+            Object[] values11 = {cntrID, 1, 1, unasID, 2};
+            createAndExecuteListParam(dao, columns11, values11, "insertOTCCNTRUNASPRTC_SWAP", "s_insertOTCCNTRUNASPRTC_SWAP");
+            log.debug("insertOTCCNTRUNASPRTC_SWAP done");
+           
+            //OTC_INT_STRC_MSTR
+            String[] columns12 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "INT_STRC_GDS_NO", "INT_TYPE_TP", 
+            		"CPN_CYCL_TP", "DYS_CALC_FRM_TP", "FIXD_INT", "SPRD"
+            };
+            
+            String intTypeTp = swapCouponType.equals("Floating") ? "FLO" : swapCouponType.equals("Fixed") ? "FIX" : null;
+            
+            String dysCalcFrmTp;
+            switch (dayCountConvention) {
+            case "ACT/365":
+            	dysCalcFrmTp = "A365";
+            	break;
+            case "ACT/360":
+            	dysCalcFrmTp = "A360";
+            	break;
+            case "30/360":
+            	dysCalcFrmTp = "3360";
+            	break;
+            case "30E/360":
+            	dysCalcFrmTp = "E360";
+            	break;
+            case "ACT/ACT":
+            	dysCalcFrmTp = "AACT";
+            	break;
+            case "unadjust":
+            	dysCalcFrmTp = "ACTD";
+            	break;
+            default:
+            	dysCalcFrmTp = null;
+            	break;
+            }
+            
+            Double fixdInt = swapCouponType.equals("Floating") ? 0 : swapCouponType.equals("Fixed") ? swapSpread/100 : null;
+            
+            Double SPRD = swapCouponType.equals("Floating") ? swapSpread/100 : swapCouponType.equals("Fixed") ? 0 : null;
+            
+            ListParam listParam12 = new ListParam(columns12);
+            
+            int rowIdx12 = listParam12.createRow();
+            listParam12.setValue(rowIdx12, "GDS_ID", gdsID);
+            listParam12.setValue(rowIdx12, "CNTR_HSTR_NO", 1);
+            listParam12.setValue(rowIdx12, "LEG_NO", 2);
+            listParam12.setValue(rowIdx12, "INT_STRC_GDS_NO", 1);
+            listParam12.setValue(rowIdx12, "INT_TYPE_TP", intTypeTp);
+            listParam12.setValue(rowIdx12, "CPN_CYCL_TP", 3);
+            listParam12.setValue(rowIdx12, "DYS_CALC_FRM_TP", dysCalcFrmTp);
+            listParam12.setValue(rowIdx12, "FIXD_INT", fixdInt);
+            listParam12.setValue(rowIdx12, "SPRD", SPRD);
+            
+            //이거 sql query문 만들어야 한다.
+        	dao.setValue("insertOTCINTSTRCMSTR", listParam12);
+            
+            dao.sqlexe("s_insertOTCINTSTRCMSTR", false);
+            
+            log.debug("insertOTCINTSTRCMSTRdone");
+            
+            //OTC_INT_STRC_CPN_SCHD_PRTC (query문 만들어야 한다.) END_DT column이 EOT_DT로 되어 있음.
+            String[] columns13 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "INT_STRC_GDS_NO", "SQNC", "INT_DTRM_DT", "STRT_DT", "EOT_DT", "SETL_DT"};
+            
+            ListParam listParam13 = new ListParam(columns13);
+            int sqnc2 = 1;
+            
+            LocalDate intDtrmDt = effectiveDateParsed;
+            
+            for (int i = 0; i < prices.length*earlyRedempCycle/swapInterestPaymentCycle; i++) {
+            	int rowIdx13 = listParam13.createRow();
+            	listParam13.setValue(rowIdx13, "GDS_ID", gdsID);
+            	listParam13.setValue(rowIdx13, "CNTR_HSTR_NO", 1);
+            	listParam13.setValue(rowIdx13, "LEG_NO", 2);
+            	listParam13.setValue(rowIdx13, "INT_STRC_GDS_NO", 1);
+            	listParam13.setValue(rowIdx13, "SQNC", sqnc2++);
+            	listParam13.setValue(rowIdx13, "INT_DTRM_DT", intDtrmDt.format(formatter));
+                listParam13.setValue(rowIdx13, "STRT_DT", intDtrmDt.format(formatter));
 
+                LocalDate endDt = intDtrmDt.plusMonths(swapInterestPaymentCycle);
+                listParam13.setValue(rowIdx13, "EOT_DT", endDt.format(formatter));
+
+                LocalDate setlDt = endDt.plusDays(settleDateOffset);
+                listParam13.setValue(rowIdx13, "SETL_DT", adjustForWeekend(setlDt).format(formatter));
+
+                intDtrmDt = endDt;
+            }
+            
+            dao.setValue("insertOTCINTSTRCCPNSCHDPRTC", listParam13);
+            dao.sqlexe("s_insertOTCINTSTRCCPNSCHDPRTC", false);
+            log.debug("insertOTCINTSTRCCPNSCHDPRTC done");
             
             dao.commit();
             log.debug("Transaction committed successfully.");

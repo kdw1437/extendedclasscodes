@@ -27,19 +27,19 @@ public class PostQuoteUpdateV3 {
                 try {
                     switch (productType) {
                         case "StepDown":
-                            cntrCode = QuoteProcessMethods2.performStepDownInsert(dao, jsonObject);
+                            cntrCode = QuoteProcessMethods.performStepDownInsert(dao, jsonObject);
                             break;
                         case "Lizard":
-                            cntrCode = QuoteProcessMethods2.performLizardInsert(dao, jsonObject);
+                            cntrCode = QuoteProcessMethods.performLizardInsert(dao, jsonObject);
                             break;
                         case "KnockOut":
-                            cntrCode = QuoteProcessMethods2.performKnockOutInsert(dao, jsonObject);
+                            cntrCode = QuoteProcessMethods.performKnockOutInsert(dao, jsonObject);
                             break;
                         case "TwoWayKnockOut":
-                            cntrCode = QuoteProcessMethods2.performTwoWayKnockOutInsert(dao, jsonObject);
+                            cntrCode = QuoteProcessMethods.performTwoWayKnockOutInsert(dao, jsonObject);
                             break;
                         case "MonthlyCoupon":
-                            cntrCode = QuoteProcessMethods2.performMonthlyCouponInsert(dao, jsonObject);
+                            cntrCode = QuoteProcessMethods.performMonthlyCouponInsert(dao, jsonObject);
                             break;
                         default:
                             log.debug("Unhandled product type: " + productType);
