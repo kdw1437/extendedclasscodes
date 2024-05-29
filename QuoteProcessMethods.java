@@ -192,11 +192,13 @@ public class QuoteProcessMethods {
 	        dao.sqlexe("s_selectCNTRGDSID", false);
 	        ListParam CNTRGDSIDParam = dao.getNowListParam();
 	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];*/
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
+	        /*Map<String, BigDecimal> ids = fetchIDs(dao);
 	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString(); 
+	        BigDecimal gdsID = ids.get("gdsID");*/
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString();
 	        
 	        String[] columns10 = {"UNAS_NM"};
             Object[] values10 = {"CD91"};
@@ -554,11 +556,10 @@ public class QuoteProcessMethods {
 	        String endDate = exerciseDates.get(exerciseDates.size() - 1).format(formatter);
 	        */
 	        
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString();
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString();
 	        
 	        /*
 	        // endDate를 사용하고 로깅
@@ -901,11 +902,10 @@ public class QuoteProcessMethods {
 	        LocalDate adjustedDatePlusTwoDays = adjustForWeekend(datePlusTwoDays);
 	        
 	        //cntrID, gdsID, cntrCode값을 부여 받는다.
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString();
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString();
 	        
 			/*//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
@@ -1195,11 +1195,10 @@ public class QuoteProcessMethods {
 	        // datePlusTwoDays를 주말과 공휴일에 맞춰 조정
 	        LocalDate adjustedDatePlusTwoDays = adjustForWeekend(datePlusTwoDays);
 			
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString();
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString();
 	        
 			/*//첫번째 테이블: OTC_GDS_MSTR
 			String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
@@ -1575,11 +1574,10 @@ public class QuoteProcessMethods {
 	        dao.sqlexe("s_selectCNTRGDSID", false);
 	        ListParam CNTRGDSIDParam = dao.getNowListParam();
 	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];*/
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString(); 
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString();
 	        
 	        
 	        /*
@@ -1952,11 +1950,10 @@ public class QuoteProcessMethods {
 	        dao.sqlexe("s_selectCNTRGDSID", false);
 	        ListParam CNTRGDSIDParam = dao.getNowListParam();
 	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];*/
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString(); 
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString(); 
 	        
 	        
 	        //첫번째 테이블: OTC_GDS_MSTR
@@ -2282,11 +2279,10 @@ public class QuoteProcessMethods {
 	        String endDate = exerciseDates.get(exerciseDates.size() - 1).format(formatter);
 	        */
 	        
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString();
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString();
 	        
 	        // 첫번째 테이블: OTC_GDS_MSTR
 	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
@@ -2622,11 +2618,10 @@ public class QuoteProcessMethods {
 	        dao.sqlexe("s_selectCNTRGDSID", false);
 	        ListParam CNTRGDSIDParam = dao.getNowListParam();
 	        BigDecimal gdsID = (BigDecimal) CNTRGDSIDParam.getRow(0)[0];*/
-	        Map<String, BigDecimal> ids = fetchIDs(dao);
-	        BigDecimal cntrID = ids.get("cntrID");
-	        BigDecimal gdsID = ids.get("gdsID");
-	        
-	        cntrCode = "QUOTE" + cntrID.toString(); 
+	        BigDecimal cntrID = fetchID(dao, "s_selectOTCSEQCNTRID");
+            BigDecimal gdsID = fetchID(dao, "s_selectCNTRGDSID");
+
+            cntrCode = "QUOTE" + cntrID.toString(); 
 	        
 	        
 	        //첫번째 테이블: OTC_GDS_MSTR
