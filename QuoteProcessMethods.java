@@ -362,7 +362,7 @@ public class QuoteProcessMethods {
 
 	        double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * prices.length / 12.0) : 0;
 
-	        Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate};
+	        Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate/100.0};
 
 	        createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
 
@@ -382,7 +382,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", adjustedExerciseDates.get(i).format(formatter));
-            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i])/100.0);
             	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = adjustedExerciseDates.get(i);
             	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
@@ -629,7 +629,7 @@ public class QuoteProcessMethods {
 	        // 첫번째 테이블: OTC_GDS_MSTR
 	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 	        Object[] values1 = {gdsID, 1, 1, cntrID, "STD", "1"};
-	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTR", "s_insertGdsMstr");
+	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTRTp", "s_insertGdsMstr");
 	        log.debug("insertGdsMstr query done");
 
 	        // 두번째 테이블: OTC_CNTR_MSTR
@@ -701,7 +701,7 @@ public class QuoteProcessMethods {
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
             double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * mainPrices.size() / 12.0) : 0;
 
-            Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate};
+            Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate/100.0};
 
             createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
 
@@ -722,7 +722,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", adjustedExerciseDates.get(i).format(formatter));
-            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(mainPrices.get(i))); //[i] 대신 get메소드 이용, [i]는 array의 객체 return, get(i)는 arrayList의 i번째 element return
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(mainPrices.get(i))/100.0); //[i] 대신 get메소드 이용, [i]는 array의 객체 return, get(i)는 arrayList의 i번째 element return
             	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = adjustedExerciseDates.get(i);
             	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
@@ -973,7 +973,7 @@ public class QuoteProcessMethods {
 	        // 첫번째 테이블: OTC_GDS_MSTR
 	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 	        Object[] values1 = {gdsID, 1, 1, cntrID, "VKO", "1"}; // VKO for Knock Out
-	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTR", "s_insertGdsMstr");
+	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTRTp", "s_insertGdsMstr");
 	        log.debug("insertGdsMstr query done");
 
 	        // 두번째 테이블: OTC_CNTR_MSTR
@@ -1113,7 +1113,7 @@ public class QuoteProcessMethods {
         	*/
             // 5번째 테이블: OTC_EXEC_MSTR
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "UP_PART_RT"};
-            Object[] values5 = {gdsID, 1, 0, "V", "1", "W", "IO", callParticipationRate};
+            Object[] values5 = {gdsID, 1, 0, "V", "1", "W", "IO", callParticipationRate/100.0};
 
             createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR2", "s_insertOTCEXECMSTR2");
             log.debug("insertOTCEXECMSTR2 done");
@@ -1267,7 +1267,7 @@ public class QuoteProcessMethods {
 	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 	        Object[] values1 = {gdsID, 1, 1, cntrID, "WAY", "1"}; // WAY 는TwoWay Knock Out
 
-	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTR", "s_insertGdsMstr");
+	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTRTp", "s_insertGdsMstr");
 	        log.debug("insertGdsMstr query done");
 
 	        // 두번째 테이블: OTC_CNTR_MSTR
@@ -1458,8 +1458,8 @@ public class QuoteProcessMethods {
             
             // 5번째 테이블: OTC_EXEC_MSTR
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "UP_PART_RT"};
-            Object[] values5_1 = {gdsID, 1, 0, "V", "1", "W", "IO", callParticipationRate};
-            Object[] values5_2 = {gdsID, 1, 0, "V", "2", "W", "IO", putParticipationRate};
+            Object[] values5_1 = {gdsID, 1, 0, "V", "1", "W", "IO", callParticipationRate/100.0};
+            Object[] values5_2 = {gdsID, 1, 0, "V", "2", "W", "IO", putParticipationRate/100.0};
 
             createAndExecuteListParam(dao, columns5, values5_1, "insertOTCEXECMSTR2", "s_insertOTCEXECMSTR2");
             createAndExecuteListParam(dao, columns5, values5_2, "insertOTCEXECMSTR2", "s_insertOTCEXECMSTR2");
@@ -1715,7 +1715,7 @@ public class QuoteProcessMethods {
             log.debug("insertOTCEXECMSTR done");*/
             // 5번째 테이블: OTC_EXEC_MSTR
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
-            Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", 0, 0, lossParticipationRate}; // YY_CPN_RT와 DUMY_CPN_RT를 0에 맞춘다.
+            Object[] values5 = {gdsID, 1, 0, "A", "1", "W", "IO", 0, 0, lossParticipationRate/100.0}; // YY_CPN_RT와 DUMY_CPN_RT를 0에 맞춘다.
 
             createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
             log.debug("insertOTCEXECMSTR query done");
@@ -1735,7 +1735,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", exerciseDates.get(i).format(formatter));
-            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i])/100.0);
             	//월지급 쿠폰의 CPN_RT의 경우: 0으로 매핑
             	listParam6.setValue(rowIdx6, "CPN_RT", 0);
             	//listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
@@ -1965,7 +1965,7 @@ public class QuoteProcessMethods {
             //두번째 테이블: OTC_CNTR_MSTR
 	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
 	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
-	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "001" : "007"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
+	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "002" : "008"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
 	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
 	        log.debug("insertOTCCNTRMSTR");
             
@@ -2007,7 +2007,7 @@ public class QuoteProcessMethods {
 
 	        double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * prices.length / 12.0) : 0;
 
-	        Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate};
+	        Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate/100.0};
 
 	        createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
 
@@ -2027,7 +2027,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", adjustedExerciseDates.get(i).format(formatter));
-            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i])/100.0);
             	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = adjustedExerciseDates.get(i);
             	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
@@ -2287,13 +2287,13 @@ public class QuoteProcessMethods {
 	        // 첫번째 테이블: OTC_GDS_MSTR
 	        String[] columns1 = {"GDS_ID", "CNTR_HSTR_NO", "SEQ", "CNTR_ID", "GDS_TYPE_TP", "BUY_SELL_TP"};
 	        Object[] values1 = {gdsID, 1, 1, cntrID, "STD", "1"};
-	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTR", "s_insertGdsMstr");
+	        createAndExecuteListParam(dao, columns1, values1, "insertOTCGDSMSTRTp", "s_insertGdsMstr");
 	        log.debug("insertGdsMstr query done");
 
 	        // 두번째 테이블: OTC_CNTR_MSTR
 	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
 	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
-	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "005" : "011"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
+	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "006" : "012"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
 	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
 	        log.debug("insertOTCCNTRMSTR query done");
 
@@ -2332,7 +2332,7 @@ public class QuoteProcessMethods {
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
             double dummyCouponRate = (kiBarrier != null) ? (coupon / 100.0 * earlyRedempCycle * mainPrices.size() / 12.0) : 0;
 
-            Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate};
+            Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", coupon / 100, dummyCouponRate, lossParticipationRate/100.0};
 
             createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
 
@@ -2353,7 +2353,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", adjustedExerciseDates.get(i).format(formatter));
-            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(mainPrices.get(i))); //[i] 대신 get메소드 이용, [i]는 array의 객체 return, get(i)는 arrayList의 i번째 element return
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(mainPrices.get(i))/100.0); //[i] 대신 get메소드 이용, [i]는 array의 객체 return, get(i)는 arrayList의 i번째 element return
             	listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
             	LocalDate initialDate = adjustedExerciseDates.get(i);
             	LocalDate adjustedDate = initialDate.plusDays(settleDateOffset);
@@ -2633,7 +2633,7 @@ public class QuoteProcessMethods {
             //두번째 테이블: OTC_CNTR_MSTR, GDS_TMPL_TP 수정 (Monthly Cpn)
 	        String[] columns2 = {"CNTR_ID", "CNTR_HSTR_NO", "ISIN_CODE", "CNTR_CODE", "CNTR_TYPE_TP", "GDS_TMPL_TP", "DEAL_DT", "AVLB_DT", "END_DT",
 	                "BUY_SELL_TP", "NMNL_AMT", "NMNL_AMT_CRNC_CODE", "FV_LEVL_TP", "INSD_OTSD_EVLT_TP", "BASEP_DTRM_DT"};
-	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "003" : "009"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
+	        Object[] values2 = {cntrID, 1, "1", cntrCode, "ELS", (kiBarrier != null ? "004" : "010"), effectiveDate, effectiveDate, endDate, "1", 30000000, calculationCurrency, "3", "I", effectiveDate};
 	        createAndExecuteListParam(dao, columns2, values2, "insertOTCCNTRMSTR", "s_insertOTCCNTRMSTR");
 	        log.debug("insertOTCCNTRMSTR");
             
@@ -2671,7 +2671,7 @@ public class QuoteProcessMethods {
             
             // 5번째 테이블: OTC_EXEC_MSTR
             String[] columns5 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "EXEC_TP", "EXEC_GDS_NO", "SRC_COND_TP", "COND_RANGE_TP", "YY_CPN_RT", "DUMY_CPN_RT", "LOSS_PART_RT"};
-            Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", 0, 0, lossParticipationRate}; // YY_CPN_RT와 DUMY_CPN_RT를 0에 맞춘다.
+            Object[] values5 = {gdsID, 1, 1, "A", "1", "W", "IO", 0, 0, lossParticipationRate/100.0}; // YY_CPN_RT와 DUMY_CPN_RT를 0에 맞춘다.
 
             createAndExecuteListParam(dao, columns5, values5, "insertOTCEXECMSTR", "s_insertOTCEXECMSTR");
             log.debug("insertOTCEXECMSTR query done");
@@ -2691,7 +2691,7 @@ public class QuoteProcessMethods {
             	listParam6.setValue(rowIdx6, "EXEC_GDS_NO", "1");
             	listParam6.setValue(rowIdx6, "SQNC", sqnc++);
             	listParam6.setValue(rowIdx6, "EVLT_DT", exerciseDates.get(i).format(formatter));
-            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i]));
+            	listParam6.setValue(rowIdx6, "ACTP_RT", Double.parseDouble(prices[i])/100.0);
             	//월지급 쿠폰의 CPN_RT의 경우: 0으로 매핑
             	listParam6.setValue(rowIdx6, "CPN_RT", 0);
             	//listParam6.setValue(rowIdx6, "CPN_RT", coupon/100.0*(i+1)/2.0);
