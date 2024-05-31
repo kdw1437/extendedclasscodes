@@ -109,20 +109,20 @@ public class QuoteProcessMethods {
 
     
     public static void createAndExecuteDirectParam(DaoService dao, String[] paramKeys, Object[] paramValues, String sqlCommand) throws Exception {
-        // Check if the lengths of paramKeys and paramValues match
+        // paramKeys와 paramValues의 길이가 일치하는지 확인
         if (paramKeys.length != paramValues.length) {
             throw new IllegalArgumentException("The lengths of paramKeys and paramValues must match.");
         }
 
-        // Retrieve the SQLParam object from the DaoService instance
+        // DaoService 인스턴스로부터 SQLParam 객체를 가져옴
         SQLParam sqlParam = dao.getSqlParam();
 
-        // Add each parameter directly to the SQLParam object
+        // 각 매개변수를 직접 SQLParam 객체에 추가
         for (int i = 0; i < paramKeys.length; i++) {
             sqlParam.addValue(paramKeys[i], paramValues[i]);
         }
 
-        // Execute the SQL command
+        // SQL 명령을 실행
         dao.sqlexe(sqlCommand, false);
     }
 
