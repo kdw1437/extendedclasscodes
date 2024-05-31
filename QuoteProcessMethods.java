@@ -451,7 +451,7 @@ public class QuoteProcessMethods {
                 
                 // Insert into OTC_BRRSCHDPRTC
                 String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
-                Object[] values8 = {gdsID, 1, 0, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                Object[] values8 = {gdsID, 1, 0, "KI", "1", 1, effectiveDate, endDate, kiBarrier/100.0};
                 createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
                 log.debug("insertOTCBRRSCHDPRTC done");
             } else {
@@ -788,7 +788,7 @@ public class QuoteProcessMethods {
 
                 // 8번째 테이블
                 String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
-                Object[] values8 = {gdsID, 1, 0, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                Object[] values8 = {gdsID, 1, 0, "KI", "1", 1, effectiveDate, endDate, kiBarrier/100.0};
                 createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
                 log.debug("insertOTCBRRSCHDPRTC done");
             }
@@ -1807,7 +1807,7 @@ public class QuoteProcessMethods {
 
                 // 8번째 테이블: OTC_BRR_SCHD_PRTC
                 String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
-                Object[] values8 = {gdsID, 1, 0, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                Object[] values8 = {gdsID, 1, 0, "KI", "1", 1, effectiveDate, endDate, kiBarrier/100.0};
 
                 createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
                 log.debug("insertOTCBRRSCHDPRTC done");
@@ -2051,7 +2051,7 @@ public class QuoteProcessMethods {
                 
                 // Insert into OTC_BRRSCHDPRTC
                 String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
-                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier/100.0};
                 createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
                 log.debug("insertOTCBRRSCHDPRTC done");
             } else {
@@ -2377,7 +2377,7 @@ public class QuoteProcessMethods {
 
                 // 8번째 테이블
                 String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
-                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier/100.0};
                 createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
                 log.debug("insertOTCBRRSCHDPRTC done");
             }
@@ -2719,7 +2719,7 @@ public class QuoteProcessMethods {
 
                 // 8번째 테이블: OTC_BRR_SCHD_PRTC
                 String[] columns8 = {"GDS_ID", "CNTR_HSTR_NO", "LEG_NO", "BRR_TP", "BRR_GDS_NO", "SQNC", "OBRA_STRT_DT", "OBRA_END_DT", "BRR_RT"};
-                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier};
+                Object[] values8 = {gdsID, 1, 1, "KI", "1", 1, effectiveDate, endDate, kiBarrier/100.0};
 
                 createAndExecuteListParam(dao, columns8, values8, "insertOTCBRRSCHDPRTC", "s_insertOTCBRRSCHDPRTC");
                 log.debug("insertOTCBRRSCHDPRTC done");
