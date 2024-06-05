@@ -69,6 +69,10 @@ public class PostVols {
 
             // sql statement 실행
             dao.sqlexe("s_insertTermVols", false);
+            
+            //dao.setValue("response", "Success: Data has been processed successfully.");
+            //dao.setValue("error", false);
+            dao.setMessage("Success: Data has been processed successfully.");
         } catch (IllegalArgumentException e) {
             log.error("Validation error: " + e.getMessage(), e);
             dao.setError(e.getMessage());
