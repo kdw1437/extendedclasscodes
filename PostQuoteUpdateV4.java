@@ -1,10 +1,11 @@
 package com.jurosys.extension.com;
 
-import java.io.IOException;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletResponse;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
+
 import com.uro.DaoService;
 import com.uro.log.LoggerMg;
 
@@ -67,8 +68,14 @@ public class PostQuoteUpdateV4 {
                 }
             }
 
+            
             String finalJson = responseArray.toString();
-            dao.setMessage(finalJson);
+            log.debug(finalJson);
+            
+            HttpServletResponse response = dao.getResponse();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(finalJson);
 
             log.debug("Preparing to send response to client");
 
