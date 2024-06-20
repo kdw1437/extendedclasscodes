@@ -80,29 +80,7 @@ public class PostQuoteUpdateV4 {
             log.debug(finalJson);
             
             HttpServletRequest request = dao.getRequest();
-            HttpServletResponse response = dao.getResponse();
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            //response.getWriter().write(finalJson);
-            try (PrintWriter out = response.getWriter()) {  
-                out.print(finalJson);           
-                out.flush();  // Ensure data is sent immediately
-            } catch (IOException e) {
-                log.error("Error sending response to VBA client", e);
-                // Consider adding an error message to the response here if possible
-            } finally {
-                // Explicitly complete the response
-                try {
-                    response.flushBuffer();  // Flush any remaining data in the buffer
-                } catch (IOException e) {
-                    log.error("Error flushing response buffer", e);
-                }
-                
-                responseCommitted.set(true);
 
-                // Set a flag to indicate the response is committed
-                //dao.getRequest().setAttribute("responseCommitted", true);
-            }
             
             if (!responseCommitted.get()) {
 	            HttpSession session = request.getSession(false); // Don't create a new session
@@ -118,6 +96,32 @@ public class PostQuoteUpdateV4 {
 	            }
             }
             
+            
+            HttpServletResponse response = dao.getResponse();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            //response.getWriter().write(finalJson);
+            try (PrintWriter out = response.getWriter()) {  
+                out.print(finalJson);           
+                out.flush();  // Ensure data is sent immediately
+                responseCommitted.set(true);
+            } catch (IOException e) {
+                log.error("Error sending response to VBA client", e);
+                // Consider adding an error message to the response here if possible
+            } finally {
+                // Explicitly complete the response
+                try {
+                    response.flushBuffer();  // Flush any remaining data in the buffer
+                } catch (IOException e) {
+                    log.error("Error flushing response buffer", e);
+                }
+                
+                
+
+                // Set a flag to indicate the response is committed
+                //dao.getRequest().setAttribute("responseCommitted", true);
+            }
+            
             log.debug("Response sent to VBA client");
             //log.debug("Preparing to send response to client");
 
@@ -126,6 +130,8 @@ public class PostQuoteUpdateV4 {
         } catch (Exception e) {
             log.error("Error parsing JSON or processing data", e);
             dao.setError("Error: " + e.getMessage());
+        }  finally {
+            responseCommitted.remove(); // Clear the ThreadLocal to avoid stale values
         }
     }
 }
